@@ -134,8 +134,10 @@
         const NET = ASSETS_TOTAL - LIABILITIES_TOTAL; // 1960
 
         // The Reasons that moved your net — the two piles you sorted in 1.4.
+        // The $960 row carries 1.4's ex-post wording verbatim: it was REALIZED at the tally,
+        // never an upfront investment (the de-reification decision).
         const CONTRIBUTED_ROWS = [
-            { account: 'Cash',      delta: 960, reason: 'You put in $960 of your own money to get going.' },
+            { account: 'Cash',      delta: 960, reason: 'My personal self covered what the work drew down — I only see it now, tallying up.' },
             { account: 'Laptop',    delta: 610, reason: 'You brought your laptop from home.' },
             { account: 'Equipment', delta: 220, reason: 'You brought gear you already owned.' },
         ];
@@ -154,9 +156,9 @@
         const GENERATED_TOTAL = GENERATED_ROWS.reduce((s, r) => s + r.delta, 0);     // 170
         const REASONS_TOTAL = CONTRIBUTED_TOTAL + GENERATED_TOTAL;                   // 1960
 
-        // May cash flows — nets to $0 on hand (incl. the $960 you put in). Carried from 1.4.
+        // May cash flows — nets to $0 on hand. Carried from 1.4: the $960 sits LAST, undated,
+        // because it was realized at the tally (ex post), not put in on May 1.
         const CASH_FLOWS = [
-            { date: 'May 1',  desc: 'Your own money, put in to get going', amount:  960 },
             { date: 'May 1',  desc: 'Rent paid in advance', amount: -1300 },
             { date: 'May 3',  desc: 'Park Tool stand', amount:  -200 },
             { date: 'May 7',  desc: 'Repair finished — customer paid', amount:  340 },
@@ -169,6 +171,7 @@
             { date: 'May 23', desc: 'Repair finished — customer paid', amount:  100 },
             { date: 'May 27', desc: 'Repair finished — customer paid', amount:  150 },
             { date: 'May 28', desc: 'Card paydown', amount:  -400 },
+            { date: '—',      desc: 'From your personal self — covering what the work drew down', amount: 960 },
         ];
 
         const d = (v) => (v < 0 ? '−$' : '$') + Math.abs(v).toLocaleString('en-US');
@@ -179,6 +182,7 @@
             const [phase, setPhase] = useState('welcome');
             const [activeTab, setActiveTab] = useState('assets');
             const [reasonsExpanded, setReasonsExpanded] = useState({ contributed: false, generated: false });
+            const [cashOpen, setCashOpen] = useState(false); // the flows under the Assets Cash line
 
             // assemble — compute the net
             const [netInput, setNetInput] = useState('');
@@ -202,6 +206,7 @@
             const handleRestart = () => {
                 playContinueClick();
                 setPhase('welcome'); setActiveTab('assets'); setReasonsExpanded({ contributed: false, generated: false });
+                setCashOpen(false);
                 setNetInput(''); setNetAttempts(0); setNetDone(false); setIdStage(0);
             };
 
@@ -293,11 +298,12 @@
             );
 
             // ============================================================
-            // Excel workbook (Bike-Repair.xlsx) — Assets · Liabilities · Cash · Reasons
+            // Excel workbook (Bike-Repair.xlsx) — Assets · Liabilities · Reasons
+            // (Cash folded INTO the Assets list in 1.4 v3 — the flows live under its line.)
             // ============================================================
             const tabConfig = [
                 { id: 'assets', label: 'Assets' }, { id: 'liabilities', label: 'Liabilities' },
-                { id: 'cash', label: 'Cash' }, { id: 'reasons', label: 'Reasons' },
+                { id: 'reasons', label: 'Reasons' },
             ];
             const ROW = (label, val, opts = {}) => (
                 <div className="flex justify-between items-center px-3 py-1.5" style={{ borderBottom: `1px solid ${colors.earthLight}`, backgroundColor: opts.bg || 'white' }}>
@@ -311,6 +317,35 @@
                     <div className="px-3 py-2 border-b text-xs uppercase tracking-wide font-bold" style={{ borderColor: colors.earthLight, backgroundColor: '#fafaf7', color: colors.earth }}>Assets — what I have</div>
                     {ASSETS_SNAPSHOT.map((c, i) => {
                         const label = c.cat === 'RIGHT OF USE' ? 'Right of Use' : (c.cat.charAt(0) + c.cat.slice(1).toLowerCase());
+                        if (c.cat === 'CASH') {
+                            return (
+                                <React.Fragment key={c.cat}>
+                                    <div onClick={() => { playContinueClick(); setCashOpen(o => !o); }}
+                                         className="flex justify-between items-center px-3 py-1.5 cursor-pointer"
+                                         style={{ borderBottom: `1px solid ${colors.earthLight}`, backgroundColor: i % 2 ? '#fafaf7' : 'white' }}>
+                                        <span className="text-sm" style={{ color: colors.earthDark }}>
+                                            <span className="inline-block w-4 mr-1 text-center" style={{ color: colors.earth }}>{cashOpen ? '▼' : '▶'}</span>
+                                            {label}<span className="text-xs ml-2 italic" style={{ color: colors.earth }}>{c.note}</span>
+                                        </span>
+                                        <span className="mono text-sm" style={{ color: colors.earthDark }}>{d(c.amount)}</span>
+                                    </div>
+                                    {cashOpen && (
+                                        <div style={{ backgroundColor: '#fafaf7', borderBottom: `1px solid ${colors.earthLight}` }}>
+                                            {CASH_FLOWS.map((f, j) => (
+                                                <div key={j} className="flex justify-between px-3 py-0.5">
+                                                    <span className="text-xs" style={{ color: colors.earthDark, paddingLeft: '18px' }}><span className="mono inline-block w-14" style={{ color: colors.earth }}>{f.date}</span>{f.desc}</span>
+                                                    <span className="mono text-xs" style={{ color: f.amount > 0 ? '#166534' : colors.error }}>{sd(f.amount)}</span>
+                                                </div>
+                                            ))}
+                                            <div className="flex justify-between px-3 py-1" style={{ borderTop: `1px solid ${colors.earthDark}` }}>
+                                                <span className="text-xs font-bold" style={{ color: colors.primary, paddingLeft: '18px' }}>Cash on hand (May 31)</span>
+                                                <span className="mono text-xs font-bold" style={{ color: colors.primary }}>$0</span>
+                                            </div>
+                                        </div>
+                                    )}
+                                </React.Fragment>
+                            );
+                        }
                         return ROW(<span>{label}<span className="text-xs ml-2 italic" style={{ color: colors.earth }}>{c.note}</span></span>, c.amount, { bg: i % 2 ? '#fafaf7' : 'white', key: c.cat });
                     })}
                     {ROW('Total Assets — what the records show', ASSETS_TOTAL, { bold: true, color: colors.primary, bg: colors.sand })}
@@ -323,27 +358,6 @@
                     {ROW('Total Liabilities — what the records show', LIABILITIES_TOTAL, { bold: true, color: colors.primary, bg: colors.sand })}
                 </div>
             );
-            const renderCashSheet = () => {
-                const inflows = CASH_FLOWS.filter(f => f.amount > 0), outflows = CASH_FLOWS.filter(f => f.amount < 0);
-                const tin = inflows.reduce((s, f) => s + f.amount, 0), tout = outflows.reduce((s, f) => s + f.amount, 0);
-                return (
-                    <div>
-                        <div className="px-3 py-2 border-b text-xs uppercase tracking-wide font-bold" style={{ borderColor: colors.earthLight, backgroundColor: '#fafaf7', color: colors.earth }}>Repair cash — May</div>
-                        <div className="px-3 pt-2"><p className="text-xs font-bold tracking-wide" style={{ color: '#166534' }}>Cash in</p></div>
-                        {inflows.map((f, i) => (
-                            <div key={i} className="flex justify-between px-3 py-0.5"><span className="text-xs" style={{ color: colors.earthDark }}><span className="mono inline-block w-14" style={{ color: colors.earth }}>{f.date}</span>{f.desc}</span><span className="mono text-xs" style={{ color: '#166534' }}>+${f.amount.toLocaleString('en-US')}</span></div>
-                        ))}
-                        <div className="px-3 pt-3"><p className="text-xs font-bold tracking-wide" style={{ color: colors.error }}>Cash out</p></div>
-                        {outflows.map((f, i) => (
-                            <div key={i} className="flex justify-between px-3 py-0.5"><span className="text-xs" style={{ color: colors.earthDark }}><span className="mono inline-block w-14" style={{ color: colors.earth }}>{f.date}</span>{f.desc}</span><span className="mono text-xs" style={{ color: colors.error }}>−${Math.abs(f.amount).toLocaleString('en-US')}</span></div>
-                        ))}
-                        <div className="flex justify-between items-center mx-3 mt-3 mb-3 px-3 py-2" style={{ backgroundColor: colors.sand, borderTop: `2px solid ${colors.earthDark}` }}>
-                            <span className="text-sm font-bold" style={{ color: colors.primary }}>Cash on hand (May 31)</span>
-                            <span className="mono text-sm font-bold" style={{ color: colors.primary }}>${(tin + tout).toLocaleString('en-US')}</span>
-                        </div>
-                    </div>
-                );
-            };
             const renderReasonsSheet = () => {
                 const Group = ({ k, title, rows, total }) => {
                     const open = reasonsExpanded[k];
@@ -383,7 +397,6 @@
                     <div style={{ minHeight: '300px', backgroundColor: 'white' }}>
                         {activeTab === 'assets' && renderAssetsSheet()}
                         {activeTab === 'liabilities' && renderLiabilitiesSheet()}
-                        {activeTab === 'cash' && renderCashSheet()}
                         {activeTab === 'reasons' && renderReasonsSheet()}
                     </div>
                     <div className="flex" style={{ backgroundColor: '#e8e8e8', borderTop: '1px solid #c8c8c8' }}>
@@ -456,10 +469,10 @@
                     <div className="p-4 max-w-3xl mx-auto">
                         <Header />
                         <NarrativeBlock>
-                            Everything in one workbook for the first time. Notice <strong>Cash</strong> sits on the
-                            Assets list now — back in session three it was just a flow you couldn't pin down. Now
-                            that you've split the repair work's money from your personal money, the repair work's
-                            cash ({d(0)} on hand) is one of its assets.
+                            Everything in one workbook. <strong>Cash</strong> sits on the Assets list, right where you
+                            folded it last time — click its line open and there are May's flows, ending with the $960
+                            your personal self covered, the line you found running through the middle of your own
+                            wallet. The repair work's cash ({d(0)} on hand) is one of its assets.
                         </NarrativeBlock>
                         {renderWorkbook()}
                         <AnnaBox>
