@@ -228,19 +228,19 @@
               ev: { kind: 'receipt', vendor: 'Cyclesport Supply', meta: 'Sales Receipt #SR-4471 · May 3, 2026 (Doc 2)', paid: 'Personal debit card •••• 6620',
                     items: [ { name: 'Park Tool PRS-25 Team Issue Repair Stand', amt: 200 } ] } },
             { id: 'g_tools', label: 'Hand tools', amount: 300, reasonId: 'r_tools_a',
-              ev: { kind: 'receipt', vendor: 'Cyclesport Supply', meta: 'Sales Receipt #SR-4488 · May 5, 2026 (Doc 4)', paid: 'Bike-Repair Visa •••• 3902',
+              ev: { kind: 'receipt', vendor: 'Cyclesport Supply', meta: 'Sales Receipt #SR-4488 · May 5, 2026 (Doc 4)', paid: 'Harborline Visa •••• 3902',
                     items: [ { name: 'Cone wrench set', amt: 65 }, { name: 'Torque wrench', amt: 95 }, { name: 'Hex / Allen key set', amt: 45 }, { name: 'Cable cutters', amt: 40 }, { name: 'Chain breaker', amt: 35 }, { name: 'Tire levers', amt: 20 } ] } },
             { id: 'g_compressor', label: 'Air compressor', amount: 180, reasonId: 'r_compressor_a',
-              ev: { kind: 'receipt', vendor: 'Compressor Depot', meta: 'Sales Receipt #CD-2208 · May 8, 2026 (Doc 10)', paid: 'Bike-Repair Visa •••• 3902',
+              ev: { kind: 'receipt', vendor: 'Compressor Depot', meta: 'Sales Receipt #CD-2208 · May 8, 2026 (Doc 10)', paid: 'Harborline Visa •••• 3902',
                     items: [ { name: 'Portable air compressor — 6 gal', amt: 180 } ] } },
             { id: 'g_washer', label: 'Parts washer', amount: 130, reasonId: 'r_washer_a',
-              ev: { kind: 'receipt', vendor: 'Industrial Supply', meta: 'Invoice #IS-30742 · May 10, 2026 (Doc 11)', paid: 'Bike-Repair Visa •••• 3902',
+              ev: { kind: 'receipt', vendor: 'Industrial Supply', meta: 'Invoice #IS-30742 · May 10, 2026 (Doc 11)', paid: 'Harborline Visa •••• 3902',
                     items: [ { name: 'Parts washer — 20-gal solvent tank', amt: 130 } ] } },
             { id: 'g_truing', label: 'Wheel-truing stand', amount: 170, reasonId: 'r_truing_a',
-              ev: { kind: 'receipt', vendor: 'Cyclesport Supply', meta: 'Sales Receipt #SR-4502 · May 12, 2026 (Doc 12)', paid: 'Bike-Repair Visa •••• 3902',
+              ev: { kind: 'receipt', vendor: 'Cyclesport Supply', meta: 'Sales Receipt #SR-4502 · May 12, 2026 (Doc 12)', paid: 'Harborline Visa •••• 3902',
                     items: [ { name: 'Wheel-truing stand — shop grade', amt: 170 } ] } },
             { id: 'g_fixtures', label: 'Fixtures', amount: 750, reasonId: 'r_fix_a',
-              ev: { kind: 'receipt', vendor: 'Workspace Outfitters', meta: 'Invoice #WO-20518 · May 5, 2026 (Doc 3)', paid: 'Bike-Repair Visa •••• 3902',
+              ev: { kind: 'receipt', vendor: 'Workspace Outfitters', meta: 'Invoice #WO-20518 · May 5, 2026 (Doc 3)', paid: 'Harborline Visa •••• 3902',
                     items: [ { name: 'Work desk', amt: 250 }, { name: 'Shelving units (×2)', amt: 200 }, { name: 'Display rack', amt: 180 }, { name: 'Pegboard panel + hook set', amt: 120 } ] } },
         ];
 
@@ -282,7 +282,7 @@
         const SUP_QBP = {
             vendor: 'QBP — Quality Bicycle Products',
             meta: 'Invoice #QBP-887341 · May 15, 2026 (Doc 5)',
-            paid: 'Bike-Repair Visa •••• 3902',
+            paid: 'Harborline Visa •••• 3902',
             items: [
                 { name: 'Chains (box)', amt: 100 }, { name: 'Brake pads (box)', amt: 80 },
                 { name: 'Derailleur cables (box)', amt: 40 }, { name: 'Cassettes (×4)', amt: 80 },
@@ -1753,7 +1753,7 @@
                             <button onClick={() => setSupReceipt('qbp')} className="px-3 py-2 rounded-lg text-sm border-2 cursor-pointer" style={{ borderColor: colors.earthLight, color: colors.earth, backgroundColor: colors.sand }}>ⓘ See the invoice</button>
                           </div>
                           {supNudge && supNudge.item === active.name && supNudge.step === 'bought' && (att.bought || 0) < 3 && (
-                            <div className="mt-2 p-2 rounded" style={{ backgroundColor: colors.warningBg }}><p className="text-sm" style={{ color: '#92400e' }}><strong>Hint {att.bought}/2:</strong> Open the invoice (ⓘ) — QBP billed the whole order to the bike-repair Visa.</p></div>
+                            <div className="mt-2 p-2 rounded" style={{ backgroundColor: colors.warningBg }}><p className="text-sm" style={{ color: '#92400e' }}><strong>Hint {att.bought}/2:</strong> Open the invoice (ⓘ) — QBP billed the whole order to the Harborline Visa.</p></div>
                           )}
                         </div>
                       )}
@@ -1836,7 +1836,7 @@
                             <button onClick={() => setEqReceipt(active.group)} className="px-3 py-2 rounded-lg text-sm border-2 cursor-pointer" style={{ borderColor: colors.earthLight, color: colors.earth, backgroundColor: colors.sand }}>{'ⓘ'} See the receipt</button>
                           </div>
                           {eqItemNudge && eqItemNudge.item === active.name && attempts < 3 && (
-                            <div className="mt-2 p-2 rounded" style={{ backgroundColor: colors.warningBg }}><p className="text-sm" style={{ color: '#92400e' }}><strong>Hint {attempts}/2:</strong> {attempts === 1 ? 'Open the receipt — it shows how this was paid.' : 'The Workspace Outfitters invoice was billed to the bike-repair Visa.'}</p></div>
+                            <div className="mt-2 p-2 rounded" style={{ backgroundColor: colors.warningBg }}><p className="text-sm" style={{ color: '#92400e' }}><strong>Hint {attempts}/2:</strong> {attempts === 1 ? 'Open the receipt — it shows how this was paid.' : 'The Workspace Outfitters invoice was billed to the Harborline Visa.'}</p></div>
                           )}
                         </div>
                       )}

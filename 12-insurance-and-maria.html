@@ -258,7 +258,6 @@
                 date: 'May 3, 2026',
                 paidWith: 'Personal debit card',
                 paidLast4: '•••• 6620',
-                paidNote: 'Not charged to the bike-repair credit card — paid from personal funds.',
                 lineItems: [
                     { name: 'Park Tool PRS-25 Team Issue Repair Stand', amount: 200 },
                 ],
@@ -266,12 +265,12 @@
             },
             {
                 id: 'tools',
-                forItem: 'conewr',
+                forItem: ['conewr', 'torque', 'hex', 'cutters', 'breaker', 'levers'],
                 vendor: 'Cyclesport Supply',
                 vendorSub: 'professional bike tools & equipment',
                 receiptNum: 'Sales Receipt  #SR-4488',
                 date: 'May 5, 2026',
-                paidWith: 'Bike-Repair Visa',
+                paidWith: 'Harborline Visa',
                 paidLast4: '•••• 3902',
                 lineItems: [
                     { name: 'Cone wrench set', amount: 65 },
@@ -285,12 +284,12 @@
             },
             {
                 id: 'fixtures',
-                forItem: 'pegboard',
+                forItem: ['desk', 'shelves', 'display', 'pegboard'],
                 vendor: 'Workspace Outfitters',
                 vendorSub: 'store fixtures & furnishings',
                 receiptNum: 'Invoice  #WO-20518',
                 date: 'May 5, 2026',
-                paidWith: 'Bike-Repair Visa',
+                paidWith: 'Harborline Visa',
                 paidLast4: '•••• 3902',
                 lineItems: [
                     { name: 'Work desk', amount: 250 },
@@ -307,7 +306,7 @@
                 vendorSub: 'Quality Bicycle Products — wholesale parts distributor',
                 receiptNum: 'Invoice  #QBP-887341  ·  Ship: UPS Ground',
                 date: 'May 15, 2026',
-                paidWith: 'Bike-Repair Visa',
+                paidWith: 'Harborline Visa',
                 paidLast4: '•••• 3902',
                 lineItems: [
                     { name: 'Chains (box)', amount: 100 },
@@ -325,7 +324,7 @@
         // Credit card statement — sourced from Source-Documents/source-documents.html (Doc 6).
         const creditCard = {
             issuer: 'Harborline Visa',
-            sub: 'Personal card · repair and personal charges co-mingled',
+            sub: 'Personal card',
             last4: '•••• 3902',
             period: 'May 1 – May 31, 2026',
             opened: 'Statement opened May 1, 2026',
@@ -804,17 +803,14 @@
                                       style={{ border: '2px solid ' + (isPaidCorrect(item.id) ? colors.success : isPaidWrong(item.id) ? colors.error : colors.accent), backgroundColor: 'white', color: colors.earthDark, fontSize: '16px' }} />
                               </span>}
                         {formDone
-                            ? <span className="w-24 text-right text-sm mono" style={{ color: colors.earthDark }}>{fmt(Number(s2Values[item.id]) || 0)}<span className="block text-xs italic" style={{ color: colors.earth }}>{item.countLeft}</span></span>
-                            : <span className="w-24 flex flex-col items-end" onClick={(e) => e.stopPropagation()}>
-                                  <span className="flex items-center gap-1">
-                                      <span className="text-sm mono" style={{ color: colors.earth }}>$</span>
-                                      <input type="text" inputMode="numeric" value={s2Values[item.id] || ''}
-                                          onChange={(e) => handleS2ValueChange(item.id, e.target.value)}
-                                          onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); }}
-                                          placeholder="?" className="w-14 px-1 py-0.5 rounded mono text-sm text-right"
-                                          style={{ border: '2px solid ' + (isS2Correct(item.id) ? colors.success : isS2Wrong(item.id) ? colors.error : colors.accent), backgroundColor: 'white', color: colors.earthDark, fontSize: '16px' }} />
-                                  </span>
-                                  <span className="text-xs italic" style={{ color: colors.earth }}>{item.countLeft}</span>
+                            ? <span className="w-24 text-right text-sm mono" style={{ color: colors.earthDark }}>{fmt(Number(s2Values[item.id]) || 0)}</span>
+                            : <span className="w-24 flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
+                                  <span className="text-sm mono" style={{ color: colors.earth }}>$</span>
+                                  <input type="text" inputMode="numeric" value={s2Values[item.id] || ''}
+                                      onChange={(e) => handleS2ValueChange(item.id, e.target.value)}
+                                      onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); }}
+                                      placeholder="?" className="w-14 px-1 py-0.5 rounded mono text-sm text-right"
+                                      style={{ border: '2px solid ' + (isS2Correct(item.id) ? colors.success : isS2Wrong(item.id) ? colors.error : colors.accent), backgroundColor: 'white', color: colors.earthDark, fontSize: '16px' }} />
                               </span>}
                     </div>
                 );
@@ -852,8 +848,10 @@
                                                 <span className="flex-1">Item</span>
                                                 <button onClick={(e) => { e.stopPropagation(); openDocFor(items.find(i => i.id === 'chains')); }}
                                                         className="w-24 text-right italic underline border-0 bg-transparent cursor-pointer"
-                                                        style={{ color: colors.primary }} title="QBP receipt">paid (receipt)</button>
-                                                <span className="w-24 text-right">on shelf now</span>
+                                                        style={{ color: colors.primary }} title="QBP receipt — what you bought">receipt</button>
+                                                <button onClick={(e) => { e.stopPropagation(); setOpenReceipt({ type: 'shelfcount', data: null, item: null }); }}
+                                                        className="w-24 text-right italic underline border-0 bg-transparent cursor-pointer"
+                                                        style={{ color: colors.primary }} title="Handwritten shelf count (Doc 13) — what's left">on shelf now</button>
                                             </div>
                                         )}
                                         {placed.map(item => isSupplies ? renderSupplyRow(item) : renderItemRow(item))}
@@ -996,7 +994,7 @@
                                     {categoryDefs.map(cat => (
                                         <li key={cat.id} className="flex gap-2">
                                             <span>{catHandValued(cat.id) ? '✓' : '·'}</span>
-                                            <span>{cat.label}{cat.id === 'supplies' ? ' — both paid (receipt) and on-shelf' : ''}</span>
+                                            <span>{cat.label}{cat.id === 'supplies' ? ' — both receipt and on-shelf' : ''}</span>
                                         </li>
                                     ))}
                                 </ul>
@@ -1030,8 +1028,8 @@
                             <>
                                 <MariaBox prefix="(quietly)">
                                     &ldquo;And notice the supplies &mdash; you <strong>bought $500</strong> of parts,
-                                    but only <strong>$200</strong> is still on the shelf to insure. The rest went into
-                                    jobs. That gap comes back soon.&rdquo;
+                                    but only <strong>$200</strong> is on the shelf now &mdash; that&rsquo;s what you insure.
+                                    The other $300 isn&rsquo;t on any receipt; what became of it is for you to work out.&rdquo;
                                 </MariaBox>
                                 <InsightPanel>
                                     Every line has a number &mdash; and you can see <em>where each one came from</em>:
@@ -1090,7 +1088,7 @@
                                         fontSize: '11px', letterSpacing: '0.04em', textTransform: 'uppercase',
                                         padding: '3px 9px', borderRadius: '11px',
                                     }}>
-                                        {openReceipt.type === 'creditCard' ? 'Credit card statement' : 'Receipt'}
+                                        {openReceipt.type === 'creditCard' ? 'Credit card statement' : openReceipt.type === 'shelfcount' ? 'Shelf count · Doc 13' : 'Receipt'}
                                     </span>
                                     <button
                                         onClick={() => setOpenReceipt(null)}
@@ -1148,6 +1146,39 @@
                                                         {r.paidNote}
                                                     </p>
                                                 )}
+                                            </>
+                                        );
+                                    })()}
+
+                                    {openReceipt.type === 'shelfcount' && (() => {
+                                        const supplies = items.filter(i => i.category === 'supplies');
+                                        return (
+                                            <>
+                                                <div style={{ fontSize: '21px', fontWeight: 700, fontFamily: '"Caveat","Segoe Script","Bradley Hand","Brush Script MT",cursive', color: '#1a2b6b' }}>
+                                                    Parts left on shelf &mdash; 5/31
+                                                </div>
+                                                <p style={{ fontSize: '12.5px', color: '#6b6b6b', marginTop: '4px', marginBottom: '14px' }}>
+                                                    Handwritten count from the parts bin (Doc 13). At month-end you walked the shelf and noted <em>how much of each part was left</em> &mdash; quantities only, no prices.
+                                                </p>
+                                                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
+                                                    <thead>
+                                                        <tr style={{ borderBottom: '1px solid #d8d8d8' }}>
+                                                            <th style={{ textAlign: 'left', padding: '7px 8px', fontWeight: 600 }}>Item</th>
+                                                            <th style={{ textAlign: 'right', padding: '7px 8px', fontWeight: 600 }}>Left on shelf</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {supplies.map((s, i) => (
+                                                            <tr key={i} style={{ borderBottom: '1px solid #d8d8d8' }}>
+                                                                <td style={{ padding: '7px 8px' }}>{s.name}</td>
+                                                                <td style={{ padding: '7px 8px', textAlign: 'right', fontStyle: 'italic' }}>{s.countLeft}</td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                                <p style={{ fontSize: '12.5px', color: '#6b6b6b', marginTop: '14px', fontStyle: 'italic' }}>
+                                                    Counted by hand on the shelf. To put a dollar value on what&rsquo;s here, pair each count with its price on the receipt.
+                                                </p>
                                             </>
                                         );
                                     })()}
@@ -1310,18 +1341,18 @@
                              style={{ backgroundColor: 'white', borderColor: colors.success }}>
                             <h3 className="font-bold mb-3" style={{ color: colors.primary }}>What You Discovered</h3>
                             <ul className="space-y-2 text-sm" style={{ color: colors.earthDark }}>
-                                <li className="flex gap-2"><span style={{ color: colors.success }}>✓</span>
+                                <li className="flex gap-2 items-start"><span style={{ color: colors.success }}>✓</span><span>
                                     Every Thing on your list got a dollar amount &mdash; but the amounts didn&rsquo;t all
                                     come from the same place: a <strong>receipt</strong> for what you bought, an
                                     <strong> eBay comp</strong> for the gear you&rsquo;d owned a while, a
-                                    <strong> shelf count</strong> for the supplies.</li>
-                                <li className="flex gap-2"><span style={{ color: colors.success }}>✓</span>
+                                    <strong> shelf count</strong> for the supplies.</span></li>
+                                <li className="flex gap-2 items-start"><span style={{ color: colors.success }}>✓</span><span>
                                     Maria has her own name for the list &mdash; <strong>insurable property</strong>:
                                     only what you own and could lose. You bought $500 of parts, but only the
-                                    <strong> $200</strong> still on the shelf goes on it.</li>
-                                <li className="flex gap-2"><span style={{ color: colors.success }}>✓</span>
+                                    <strong> $200</strong> still on the shelf goes on it.</span></li>
+                                <li className="flex gap-2 items-start"><span style={{ color: colors.success }}>✓</span><span>
                                     You valued one item in each section by hand, then finished the rest in one pass.
-                                    <em> Same move as last time</em> &mdash; once the pattern&rsquo;s clear, the volume is easy.</li>
+                                    <em> Same move as last time</em> &mdash; once the pattern&rsquo;s clear, the volume is easy.</span></li>
                             </ul>
                         </div>
 

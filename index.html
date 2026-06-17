@@ -80,8 +80,8 @@
             {
                 id: 'm4',
                 module: 'Module 4 · Real Statements',
-                title: 'Reading real financial statements',
-                desc: 'The same architecture, customized — a for-profit and a nonprofit, read end to end.',
+                title: 'Working with real financial statements',
+                desc: 'The same architecture, customized — seeing it at work in a real for-profit and a real nonprofit.',
                 placeholder: true,
                 activities: null,
             },
@@ -96,23 +96,15 @@
             },
         ];
 
-        // Rick's intro transcript. (The two references to the "$25k decision" have been removed so the
-        // page matches the revised course, which does not lead with that framing.)
+        // Transcript of the ~40-second intro video (final script, 2026-06-12). Replaces the
+        // original ~2-minute welcome; the long version is preserved in git history.
         const transcriptBeats = [
-            { label: 'Beats 1 & 2 — Scale problem and complexity',
-              text: '"Imagine you are running a small business. Three employees, a handful of customers, maybe a dozen transactions in a week. You could probably keep track of most of that in your head — or a notebook. Now imagine ten thousand employees. Operations in forty states and a few different countries. Millions of transactions a year. Suppliers deciding whether to extend credit. Lenders deciding whether to lend. Shareholders deciding where to put their capital. Regulators checking for compliance. Each of them drawing on the same underlying records to answer very different questions. You can’t run that from a notebook. And the systems built to handle that complexity — to capture it, organize it, report it in a form people can actually use — those systems are genuinely remarkable. They’ve been evolving for literally thousands of years, absorbing new demands, new technology, new types of organizations. What we use today isn’t something a committee designed from scratch. It’s the accumulated solution to a very long series of real problems."' },
-            { label: 'Self-introduction',
-              text: '"My name is Rick Antle. I’m the William S. Beinecke Professor of Accounting at the Yale School of Management. I’ve spent my career studying how accounting systems work — what they reveal, what they conceal, and why. First encounters with accounting can be disorienting — whether you’ve worked through rules and procedures, or been dropped into a set of financial statements with no map to navigate them. What’s often missing is a real understanding of the architecture — where it came from, what problems it was built to solve, and why it looks the way it does. This prework is my attempt to fix that."' },
-            { label: 'Beat 3 — Common-structure tease',
-              text: '"Here’s what might surprise you. The accounting system that CVS Health uses — one of the largest companies in the United States — runs on the same underlying architecture as the books of a small neighborhood nonprofit. And the books of a city government. The customizations are real. CVS reports under US GAAP; the nonprofit follows a different set of rules; the city follows yet another. But underneath, the same identity. The same evidence test for what goes on the books. The same insistence that every change in the entity’s position be traced through the statements, not declared. The customizations live on top of a shared skeleton. Once you can see the skeleton, a lot of the apparent variety in the accounting world stops being variety."' },
-            { label: 'Beat 4 — How we’ll work together',
-              text: '"Here is how we are going to do this. You are going to build the architecture yourself, from problems. I am not handing you a set of rules to memorize. I am putting you in front of small, concrete situations — a handful of items to sort, a month of transactions, real businesses, real nonprofits — and asking you to make sense of what just happened. The architecture is going to emerge from the doing. When the formal labels arrive — assets, liabilities, equities, the accounting identity — they will land on something you have already constructed. They will name what you already see. That is a different kind of knowing than memorizing definitions and hoping to apply them later. It tends to stick."' },
-            { label: 'Beat 5 — Fresh-mind ask',
-              text: '"If you’ve studied accounting before — a course, some work experience, anything at all — you’ve already assembled a mental model of how this works. And I’m going to ask you to set it aside for now. Not because it’s wrong. But because there’s a real difference between applying a framework you already have and building one from scratch — because you needed it to solve a problem in front of you. This prework is designed to give you that second experience. And you can’t have it if you’re pattern-matching to something you already know. So when you hit a problem and something in the back of your head says ‘I know where this is going’ — stay in the problem anyway. Let the architecture emerge. See if it looks the same from this angle. Give it a chance. I think you’ll find it’s worth it."' },
-            { label: 'Beat 6 — The two destinations',
-              text: '"Here is where we are headed. By the end of this prework, you are going to open the actual financial statements of two real organizations and read them. Not skim — read. First CVS Health, a for-profit corporation under US GAAP. Then Yale University, a nonprofit operating under a different set of conventions on top of the same underlying architecture. The architecture you will have built by then will let you navigate both. You will see where management made choices. You will see where the records are quiet about things that matter. You will see the path the statements take from one balance sheet to the next. Two examples, same skeleton, different customizations. That is the destination. Module 1 is the first step."' },
-            { label: 'Beat 7 — Closing invitation',
-              text: '"So. Module 1 starts with the morning you decided to get organized. From there we will record more, decompose more, name more. By the end of Module 1, you will have built — by hand — a way to read a set of books, and the names for what you made. Let’s get going."' },
+            { label: 'Three ways people meet accounting',
+              text: '"People meet accounting in one of three ways. From fifty thousand feet — dropped into a corporation’s financial statements with no GPS, or even a map. Up close — as a pile of procedures and rules. Or from the middle — handed reports they’re expected to understand and use, and evaluated by numbers from a mysterious system."' },
+            { label: 'A different approach',
+              text: '"I’m Rick Antle. I teach accounting at Yale, and I’ve prepared this prework using a different approach: you experience the pain points built into the system by building one from the ground up."' },
+            { label: 'Where it leads',
+              text: '"We will start with a bike-repair side gig. And the lessons will carry — all the way to the financial statements of the most complex corporation, nonprofit, or government."' },
         ];
 
         const App = () => {
@@ -159,36 +151,11 @@
                             </div>
                         </div>
 
-                        {/* Welcome prose — NarrativeBlock style */}
-                        <div className="p-5 rounded-lg mb-4 italic"
-                             style={{ backgroundColor: 'white', borderLeft: `4px solid ${colors.accent}`, color: '#374151' }}>
-                            <p className="mb-3 leading-relaxed">
-                                Most people meet accounting as a pile of rules. This pre-work does the opposite. You’ll
-                                build the architecture yourself, from small concrete problems &mdash; and when the formal
-                                names arrive, they’ll land on something you’ve already made.
-                            </p>
-                            <p className="mb-3 leading-relaxed">
-                                It starts with bike repair &mdash; and, at first, no &ldquo;shop&rdquo; at all. You’ve been
-                                fixing bikes for money for about six months, but it’s all folded into ordinary life: tools at
-                                home and in the rented space, the money moving through your personal account, most of it kept
-                                in your head. Over five short sessions &mdash; with a little help from your friend Anna &mdash;
-                                you start setting the repair work apart from everything else: what you have, what you owe,
-                                and <em>why</em> the numbers move, transaction by transaction.
-                            </p>
-                            <p className="leading-relaxed">
-                                Setting that work apart turns out to be the whole game. The boundary you draw has a name
-                                &mdash; the <em>entity</em> &mdash; and on it you’ll have built, by hand, the same structure
-                                the largest organizations file: a balance sheet around the accounting identity, maintained by
-                                double-entry. You build it; you don’t find it. The modules that follow take it further &mdash;
-                                up to reading the real statements of actual organizations.
-                            </p>
-                        </div>
-
-                        {/* Rick intro placeholder + transcript */}
+                        {/* Rick intro video + transcript (the ~40-second welcome — replaces the old prose + 2-minute video) */}
                         <div className="rounded-lg border-2 mb-4 p-4"
                              style={{ borderColor: colors.earthLight, backgroundColor: 'white' }}>
                             <p className="text-xs font-bold uppercase tracking-wide mb-3" style={{ color: colors.earth }}>
-                                Welcome from Rick &middot; about 2 minutes
+                                Welcome from Rick &middot; about 40 seconds
                             </p>
                             {/* Video placeholder */}
                             <div className="rounded-lg mx-auto mb-3 flex flex-col items-center justify-center"
@@ -240,8 +207,8 @@
                             <p className="text-sm mb-4 leading-relaxed" style={{ color: colors.earthDark }}>
                                 Module 1 is the journey itself &mdash; the sessions in which you build a way of reading any
                                 set of books by first making sense of your own repair work, setting it apart from everything
-                                else. The modules that follow build on it, up to reading the actual financial statements of
-                                real organizations. Module 1 is ready now; the rest are on the way.
+                                else. The modules that follow carry the lessons further &mdash; all the way to the financial
+                                statements of real organizations. Module 1 is ready now; the rest are on the way.
                             </p>
 
                             <div className="space-y-3">
@@ -338,9 +305,14 @@
                             </div>
                         </div>
 
-                        {/* Transition + Begin button */}
-                        <p className="italic mb-4 mt-6 pt-4 border-t leading-relaxed text-sm"
+                        {/* Fresh-mind ask (kept from the old welcome's beat 5) + transition + Begin button */}
+                        <p className="italic mb-2 mt-6 pt-4 border-t leading-relaxed text-sm"
                            style={{ color: colors.earth, borderColor: colors.earthLight }}>
+                            Studied accounting before? Set it aside for now &mdash; build the thing fresh, and see if it
+                            looks the same from this angle.
+                        </p>
+                        <p className="italic mb-4 leading-relaxed text-sm"
+                           style={{ color: colors.earth }}>
                             When you’re ready, the journey starts with a sort &mdash; ten things scattered between the rented space and home, six months in.
                         </p>
 
