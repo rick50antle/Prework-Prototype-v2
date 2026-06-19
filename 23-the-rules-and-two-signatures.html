@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Activity 2.3: The Rules and the Two Signatures</title>
+    <link href="lib/font-3.css" rel="stylesheet">
+    <link href="lib/font-4.css" rel="stylesheet">
+    <script src="lib/tailwind.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        .serif { font-family: Georgia, 'Times New Roman', serif; }
+        .ink { font-family: "Segoe Script","Bradley Hand","Snell Roundhand","Brush Script MT",cursive; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-up { animation: fadeUp 0.4s ease-out both; }
+        @keyframes inkIn { from { opacity: 0; transform: translateY(4px) rotate(-2deg); } to { opacity: 1; transform: translateY(0) rotate(-2deg); } }
+        .ink-in { animation: inkIn 0.45s ease-out both; }
+    </style>
+</head>
+<body class="min-h-screen" style="background-color: #f5f1e8;">
+    <div id="root"></div>
+    <script src="lib/react.production.min.js"></script>
+    <script src="lib/react-dom.production.min.js"></script>
+    <script src="lib/babel.min.js?v=7"></script>
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        /**
+         * Activity 2.3: The Rules and the Two Signatures  ·  ★ KEYSTONE
+         * CMU METALS / Yale SOM Accounting Prework — Module 2, Activity 3
+         *
+         * @version 0.2
+         * @date 2026-06-18
+         * @description The heart of the module. (v0.2 redesign, Rick 2026-06-18: Anna does
+         *   NOT hand you her agreement — she explains you need one and shows HERS as an
+         *   example; the student GENERATES their own, which is DISPLAYED in full, and signs
+         *   the displayed document.) The Operating Agreement delivers three things: (a) the
+         *   dual-capacity signature (the two you's, legal & literal); (b) Capital
+         *   Contributions — the whole M1 business in at book carryover, same balance sheet,
+         *   NOT a number changed ("what you put in" -> members' capital, split kept
+         *   $1,790 + $170); (c) limited liability (Maria's wall). Then the KEYSTONE is named:
+         *   accounting-entity != legal-entity. Renders Module-2-Play-Script.md Scene 2.3 (v4).
+         *   Member name carried from 2.2 via localStorage.
+         */
+
+        const colors = {
+            primary: '#00356b', sand: '#f5f1e8', earth: '#8b7355', earthLight: '#d4c4a8',
+            earthDark: '#5c4d3d', accent: '#c9a227', clay: '#c4a574', clayLight: '#e8dcc8',
+            clayDark: '#a08050', success: '#22c55e', successBg: '#f0fdf4', warning: '#f59e0b',
+            warningBg: '#fffbeb', error: '#dc2626', errorBg: '#fef2f2',
+        };
+
+        const glossaryTerms = [
+            { term: 'Operating Agreement', definition: 'An LLC’s internal rulebook — who the members are, how it’s managed, what was contributed, who bears its liabilities. Every LLC has one; you write your own.' },
+            { term: 'Sole Member', definition: 'The single owner of a one-member LLC. Here, that’s you — in your owner capacity.' },
+            { term: 'Capital contribution', definition: 'What an owner puts into the company. Here it’s the whole repair business, transferred at its existing book amounts — no revaluation, no new number.' },
+            { term: 'Members’ capital / Members’ equity', definition: 'The LLC’s name for the residual A − L. A definitional difference, not “what’s left for the owner.” The contributed slice ($1,790) and the retained slice ($170) are kept separate.' },
+            { term: 'Limited liability', definition: 'A legal fact: the member is not personally on the hook for the Company’s debts. It changes who can be pursued — not what the records show.' },
+            { term: 'Accounting entity', definition: 'The boundary you draw for information — the thing your books are about. It can exist with or without any legal body, and it came first here (1.1).' },
+        ];
+
+        const createAudioContext = () => new (window.AudioContext || window.webkitAudioContext)();
+        const playClick = () => { try { const c=createAudioContext(),o=c.createOscillator(),g=c.createGain(); o.connect(g);g.connect(c.destination); o.frequency.value=660;o.type='sine'; const t=c.currentTime; g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(0.15,t+0.01);g.gain.exponentialRampToValueAtTime(0.01,t+0.1); o.start(t);o.stop(t+0.12); setTimeout(()=>c.close(),200);}catch(e){} };
+        const playReveal = () => { try { const c=createAudioContext(); [523.25,659.25,783.99].forEach((f,i)=>{const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=f;o.type='sine';const t=c.currentTime+i*0.1;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(0.25,t+0.02);g.gain.exponentialRampToValueAtTime(0.01,t+0.15);o.start(t);o.stop(t+0.25);}); setTimeout(()=>c.close(),600);}catch(e){} };
+        const playPen = () => { try { const c=createAudioContext(),o=c.createOscillator(),g=c.createGain(); o.connect(g);g.connect(c.destination); o.frequency.value=520;o.type='triangle'; const t=c.currentTime; g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(0.12,t+0.02);g.gain.exponentialRampToValueAtTime(0.01,t+0.18); o.start(t);o.stop(t+0.2); setTimeout(()=>c.close(),300);}catch(e){} };
+        const playThud = () => { try { const c=createAudioContext(),o=c.createOscillator(),g=c.createGain(); o.connect(g);g.connect(c.destination); o.frequency.value=150;o.type='sine'; const t=c.currentTime; g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(0.3,t+0.02);g.gain.exponentialRampToValueAtTime(0.01,t+0.3); o.start(t);o.stop(t+0.35); setTimeout(()=>c.close(),450);}catch(e){} };
+
+        const phaseOrder = ['welcome', 'agreement', 'contribution', 'wall', 'keystone', 'complete'];
+        const assetRows = [['Cash','0'],['Prepaid rent','650'],['Parts on the shelf','200'],['Tools & equipment','1,200'],['Fixtures','750'],['Laptop','610']];
+
+        function TutorialApp() {
+            const [phase, setPhase] = useState('welcome');
+            const [showGlossary, setShowGlossary] = useState(false);
+            const [devMode, setDevMode] = useState(false);
+            const [headerClickCount, setHeaderClickCount] = useState(0);
+
+            const [memberName, setMemberName] = useState('');
+            const [generated, setGenerated] = useState(false);
+            const [signedCompany, setSignedCompany] = useState(false);
+            const [signedMember, setSignedMember] = useState(false);
+            const [contributed, setContributed] = useState(false);
+            const [claimRun, setClaimRun] = useState(false);
+            const [keystonePick, setKeystonePick] = useState(null);
+            const [docView, setDocView] = useState(null);
+            const [expanded, setExpanded] = useState(['7', '9', '17']);
+
+            useEffect(() => {
+                try { const n = localStorage.getItem('m2Member'); if (n) setMemberName(n); } catch (e) {}
+                const onKey = (e) => { if (e.key === 'Escape') setShowGlossary(false); };
+                window.addEventListener('keydown', onKey);
+                return () => window.removeEventListener('keydown', onKey);
+            }, []);
+
+            const displayName = (memberName.trim() || '[Your Name]');
+            const entityName = displayName + "’s Bike Repairs, LLC";
+            const progress = Math.round((phaseOrder.indexOf(phase) / (phaseOrder.length - 1)) * 100);
+            const bothSigned = signedCompany && signedMember;
+            const keystoneRight = keystonePick === '1.1';
+
+            const handleHeaderClick = () => { const n = headerClickCount + 1; setHeaderClickCount(n); if (n >= 3) { setDevMode(!devMode); setHeaderClickCount(0); } };
+            const goPhase = (p) => { playClick(); setPhase(p); };
+            const handleRestart = () => { playClick(); setPhase('welcome'); setGenerated(false); setSignedCompany(false); setSignedMember(false); setContributed(false); setClaimRun(false); setKeystonePick(null); setExpanded(['7', '9', '17']); setDocView(null); };
+
+            const Header = () => (
+                <div className="rounded-lg p-4 mb-5" style={{ backgroundColor: colors.primary }}>
+                    <div className="flex justify-between items-start">
+                        <div onClick={handleHeaderClick} style={{ cursor: 'pointer' }}>
+                            <h1 className="text-lg font-bold text-white">Activity 2.3: The Rules and the Two Signatures</h1>
+                            <p className="text-sm mt-1" style={{ color: colors.earthLight }}>Module 2 · Getting Formal &nbsp;•&nbsp; ~12 min</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <a href="index.html" className="p-2 rounded-lg text-white text-xl cursor-pointer" title="Contents" aria-label="Back to contents" style={{ textDecoration: 'none', transition: 'background 0.2s' }} onMouseOver={(e)=>e.currentTarget.style.background='rgba(255,255,255,0.1)'} onMouseOut={(e)=>e.currentTarget.style.background='transparent'}>🏠</a>
+                            <button onClick={() => { playClick(); setDocView('list'); }} className="p-2 rounded-lg text-white text-xl border-0 bg-transparent cursor-pointer" title="Source Documents" aria-label="Source Documents" style={{ transition: 'background 0.2s' }} onMouseOver={(e)=>e.currentTarget.style.background='rgba(255,255,255,0.1)'} onMouseOut={(e)=>e.currentTarget.style.background='transparent'}>📄</button>
+                            <button onClick={() => setShowGlossary(true)} className="p-2 rounded-lg text-white text-xl border-0 bg-transparent cursor-pointer" title="Glossary" aria-label="Open glossary" style={{ transition: 'background 0.2s' }} onMouseOver={(e)=>e.currentTarget.style.background='rgba(255,255,255,0.1)'} onMouseOut={(e)=>e.currentTarget.style.background='transparent'}>📖</button>
+                            <button onClick={handleRestart} className="p-2 rounded-lg text-white text-xl border-0 bg-transparent cursor-pointer" title="Restart" aria-label="Restart activity" style={{ transition: 'background 0.2s' }} onMouseOver={(e)=>e.currentTarget.style.background='rgba(255,255,255,0.1)'} onMouseOut={(e)=>e.currentTarget.style.background='transparent'}>↺</button>
+                        </div>
+                    </div>
+                    <div className="mt-4">
+                        <div className="flex justify-between text-xs mb-1" style={{ color: 'rgba(255,255,255,0.7)' }}><span>Progress</span><span>{progress}%</span></div>
+                        <div className="h-2 rounded-full" style={{ backgroundColor: 'rgba(255,255,255,0.2)' }} role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}>
+                            <div className="h-full rounded-full" style={{ width: `${progress}%`, backgroundColor: colors.accent, transition: 'width 0.5s' }} />
+                        </div>
+                    </div>
+                    {devMode && (
+                        <div className="mt-3 pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.2)' }}>
+                            <p className="text-xs mb-2" style={{ color: 'rgba(255,255,255,0.7)' }}>Dev: skip to phase</p>
+                            <div className="flex flex-wrap gap-1">
+                                {phaseOrder.map(p => (<button key={p} onClick={() => setPhase(p)} className="px-2 py-1 rounded text-xs border-0 cursor-pointer" style={{ backgroundColor: phase === p ? 'white' : 'rgba(255,255,255,0.2)', color: phase === p ? colors.primary : 'white' }}>{p}</button>))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+
+            const Continue = ({ onClick, children, disabled }) => (
+                <button onClick={onClick} disabled={disabled} className="px-6 py-3 rounded-lg font-semibold text-white border-0 mt-5" style={{ backgroundColor: disabled ? colors.earthLight : colors.primary, cursor: disabled ? 'not-allowed' : 'pointer', transition: 'background 0.2s' }}>{children || 'Continue →'}</button>
+            );
+            const Narrative = ({ children }) => (<div className="rounded-lg p-5 mb-4" style={{ backgroundColor: '#fff', borderLeft: `4px solid ${colors.accent}` }}>{children}</div>);
+            const AnnaCard = ({ children }) => (
+                <div className="rounded-lg p-4 mb-4 flex gap-3" style={{ backgroundColor: '#eef2f7', border: `1px solid ${colors.primary}` }}>
+                    <div className="flex-shrink-0 rounded-full flex items-center justify-center font-bold text-white" style={{ width: 38, height: 38, backgroundColor: colors.primary }}>A</div>
+                    <div className="text-sm" style={{ color: colors.earthDark }}><div className="font-semibold mb-1" style={{ color: colors.primary }}>Anna · formed her own LLC</div>{children}</div>
+                </div>
+            );
+            const GlossaryModal = () => (
+                <div className="fixed inset-0 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 50 }} onClick={() => setShowGlossary(false)}>
+                    <div className="rounded-lg p-6 max-w-md w-full" style={{ backgroundColor: '#fff', maxHeight: '80vh', overflowY: 'auto' }} onClick={(e) => e.stopPropagation()}>
+                        <div className="flex justify-between items-center mb-4"><h2 className="text-lg font-bold" style={{ color: colors.primary }}>📖 Glossary</h2><button onClick={() => setShowGlossary(false)} className="text-2xl border-0 bg-transparent cursor-pointer" style={{ color: colors.earth }} aria-label="Close glossary">✕</button></div>
+                        {glossaryTerms.map((t, i) => (<div key={i} className="mb-3 pb-3" style={{ borderBottom: i < glossaryTerms.length - 1 ? `1px solid ${colors.earthLight}` : 'none' }}><div className="font-semibold" style={{ color: colors.earthDark }}>{t.term}</div><div className="text-sm mt-1" style={{ color: colors.earth }}>{t.definition}</div></div>))}
+                    </div>
+                </div>
+            );
+
+            // a marked section of the agreement
+            const Clause = ({ n, title, star, children }) => (
+                <div className="mb-2" style={{ paddingLeft: 10, borderLeft: `3px solid ${star ? colors.accent : 'transparent'}` }}>
+                    <span className="font-bold" style={{ color: colors.earthDark }}>{n}. {title}.</span>{' '}
+                    <span style={{ color: colors.earthDark }}>{children}</span>
+                    {star && <span className="ml-1 text-xs font-bold" style={{ color: colors.clayDark }}>★ watch this</span>}
+                </div>
+            );
+
+            // ---------- source documents: full Operating Agreements ----------
+            const annaFacts = {
+                entity: 'Maple Street Studio, LLC', member: 'Anna Reyes', date: 'March 14, 2024',
+                state: 'Connecticut', act: 'Connecticut Uniform Limited Liability Company Act',
+                purpose: 'pottery and ceramics instruction', office: '50 Maple Street, New Haven, CT 06511',
+                sched: { assets: [['Kilns & wheels', '3,200'], ['Studio shelving & tools', '900'], ['Clay & glaze inventory', '400']], assetsTotal: '4,500', liabs: [['Equipment loan', '600']], liabsTotal: '600', net: '3,900' },
+                sigCompany: 'Anna Reyes', sigMember: 'Anna Reyes',
+            };
+            const myFacts = {
+                entity: entityName, member: displayName, date: 'June 1, 2026',
+                state: 'Connecticut', act: 'Connecticut Uniform Limited Liability Company Act',
+                purpose: 'bicycle repair and maintenance', office: '142 Whalley Avenue, Unit B, New Haven, CT 06511',
+                sched: { assets: assetRows, assetsTotal: '3,410', liabs: [['Credit-card balance (business)', '1,230'], ['Customer advance — Smith', '220']], liabsTotal: '1,450', net: '1,960' },
+                sigCompany: signedCompany ? displayName : null, sigMember: signedMember ? displayName : null,
+            };
+            const clausesFor = (f) => [
+                { n: '1', title: 'Organization', body: `The Company is a ${f.state} limited liability company, formed under the ${f.act}.` },
+                { n: '2', title: 'Name', body: `The name of the Company is ${f.entity}.` },
+                { n: '3', title: 'Purpose', body: `The purpose of the Company is ${f.purpose}, and any other lawful activity for which a limited liability company may be formed.` },
+                { n: '4', title: 'Principal Office', body: `The principal office of the Company is ${f.office}, or such other place as the Sole Member may determine.` },
+                { n: '5', title: 'Registered Agent', body: `The registered agent of the Company for service of process in ${f.state} is ${f.member}, at the principal office.` },
+                { n: '6', title: 'Term', body: `The Company began upon the filing of its Certificate of Organization and continues until dissolved in accordance with this Agreement.` },
+                { n: '7', title: 'Sole Member', body: `The sole member of the Company is ${f.member}.` },
+                { n: '8', title: 'Management; Powers', body: `The business and affairs of the Company are managed by the Sole Member, who may execute documents and otherwise act for and bind the Company.` },
+                { n: '9', title: 'Capital Contributions', body: `The Sole Member contributes the assets and liabilities of the business, at their existing book amounts, as set forth on Schedule A. Net book value contributed: $${f.sched.net}.` },
+                { n: '10', title: 'Additional Capital Contributions', body: `No additional contributions are required of the Sole Member, though further contributions may be made at the Sole Member's discretion.` },
+                { n: '11', title: 'Allocation of Profits and Losses', body: `All profits and losses of the Company are allocated 100% to the Sole Member.` },
+                { n: '12', title: 'Distributions', body: `Distributions are made to the Sole Member at such times and in such amounts as the Sole Member determines.` },
+                { n: '13', title: 'Assignments', body: `The Sole Member may assign its interest in the Company, in whole or in part.` },
+                { n: '14', title: 'Admission of Additional Members', body: `The Sole Member may admit one or more additional members; upon admission, this Agreement is amended to reflect their interests.` },
+                { n: '15', title: 'Dissolution and Liquidation', body: `The Company may be dissolved by the Sole Member. On dissolution, its assets are applied first to its debts, and the remainder distributed to the Sole Member.` },
+                { n: '16', title: 'Tax Matters', body: `The Company is disregarded as separate from its owner for U.S. federal income-tax purposes; the fiscal year ends December 31.` },
+                { n: '17', title: 'Liability of the Sole Member', body: `The Sole Member is not personally liable for the debts or obligations of the Company.` },
+                { n: '18', title: 'Indemnification', body: `The Company indemnifies the Sole Member to the fullest extent permitted by law.` },
+                { n: '19', title: 'Miscellaneous', body: `This Agreement is governed by the laws of ${f.state}; the section headings are for convenience only.` },
+            ];
+            const FullAgreement = ({ f, mark = [], interactive = false }) => (
+                <div className="serif" style={{ fontSize: 13, color: colors.earthDark }}>
+                    <div className="text-center font-bold" style={{ fontSize: 16, letterSpacing: '0.04em' }}>OPERATING AGREEMENT</div>
+                    <div className="text-center mb-3" style={{ color: colors.primary, fontWeight: 700, fontSize: 13 }}>OF {f.entity.toUpperCase()}</div>
+                    <p className="mb-2" style={{ textAlign: 'justify' }}>This Operating Agreement of {f.entity}, dated {f.date}, is entered into by {f.member} (the &ldquo;Sole Member&rdquo;) and {f.entity} (the &ldquo;Company&rdquo;).</p>
+                    <p className="mb-2 text-xs" style={{ color: colors.earth, fontFamily: 'Inter, sans-serif' }}>All nineteen sections are here — tap any heading to expand it.</p>
+                    {clausesFor(f).map(c => {
+                        const star = mark.includes(c.n);
+                        const open = expanded.includes(c.n);
+                        return (
+                            <div key={c.n} style={{ marginBottom: 3, paddingLeft: 10, borderLeft: `3px solid ${star ? colors.accent : colors.earthLight}` }}>
+                                <div onClick={() => setExpanded(p => p.includes(c.n) ? p.filter(x => x !== c.n) : [...p, c.n])} style={{ cursor: 'pointer', display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                                    <span style={{ color: colors.earth, fontSize: 11 }}>{open ? '▾' : '▸'}</span>
+                                    <span className="font-bold" style={{ color: colors.earthDark }}>{c.n}. {c.title}.</span>
+                                    {star && <span className="text-xs font-bold" style={{ color: colors.clayDark }}>★ watch this</span>}
+                                </div>
+                                {open && <div style={{ paddingLeft: 18, paddingTop: 2, paddingBottom: 3 }}>{c.body}</div>}
+                            </div>
+                        );
+                    })}
+                    <div className="mt-3 mb-1 font-bold" style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.04em', color: colors.earth }}>Schedule A &mdash; Contributed Property</div>
+                    <div style={{ maxWidth: 380 }}>
+                        {f.sched.assets.map(([k, v]) => (<div key={k} className="flex justify-between"><span>{k}</span><span className="mono">{v}</span></div>))}
+                        <div className="flex justify-between font-semibold" style={{ borderTop: `1px solid ${colors.earthLight}` }}><span>Total assets</span><span className="mono">{f.sched.assetsTotal}</span></div>
+                        {f.sched.liabs.map(([k, v]) => (<div key={k} className="flex justify-between"><span>{k}</span><span className="mono">({v})</span></div>))}
+                        <div className="flex justify-between font-semibold"><span>Total liabilities assumed</span><span className="mono">({f.sched.liabsTotal})</span></div>
+                        <div className="flex justify-between font-bold" style={{ borderTop: `2px solid ${colors.earthDark}` }}><span>Net contribution (members' capital)</span><span className="mono">{f.sched.net}</span></div>
+                    </div>
+                    <div className="text-center mt-3 mb-2" style={{ color: colors.earth, fontSize: 12 }}>&mdash; signature page &mdash;</div>
+                    <div className="grid grid-cols-2 gap-3">
+                        <div>
+                            <div className="text-xs uppercase" style={{ color: colors.earth }}>For the Company</div>
+                            <div style={{ minHeight: 34, borderBottom: `1px solid ${colors.earthDark}`, display: 'flex', alignItems: 'flex-end', paddingBottom: 2 }}>
+                                {interactive
+                                    ? (signedCompany ? <span className="ink ink-in" style={{ fontSize: 22, color: '#1a2b6b' }}>{displayName}</span> : <button onClick={() => { playPen(); setSignedCompany(true); }} className="text-sm font-semibold border-0 rounded px-3 py-1 cursor-pointer" style={{ backgroundColor: colors.clayLight, color: colors.clayDark }}>✍ Sign here</button>)
+                                    : (f.sigCompany ? <span className="ink" style={{ fontSize: 22, color: '#1a2b6b' }}>{f.sigCompany}</span> : null)}
+                            </div>
+                            <div className="text-xs mt-0.5" style={{ color: colors.earth }}>{f.member}, Managing Member</div>
+                            <div className="text-xs" style={{ color: colors.earth }}>Dated: {f.date}</div>
+                        </div>
+                        <div>
+                            <div className="text-xs uppercase" style={{ color: colors.earth }}>As an individual</div>
+                            <div style={{ minHeight: 34, borderBottom: `1px solid ${colors.earthDark}`, display: 'flex', alignItems: 'flex-end', paddingBottom: 2 }}>
+                                {interactive
+                                    ? (signedMember ? <span className="ink ink-in" style={{ fontSize: 22, color: '#1a2b6b' }}>{displayName}</span> : <button onClick={() => { playPen(); setSignedMember(true); }} className="text-sm font-semibold border-0 rounded px-3 py-1 cursor-pointer" style={{ backgroundColor: colors.clayLight, color: colors.clayDark }}>✍ Sign here</button>)
+                                    : (f.sigMember ? <span className="ink" style={{ fontSize: 22, color: '#1a2b6b' }}>{f.sigMember}</span> : null)}
+                            </div>
+                            <div className="text-xs mt-0.5" style={{ color: colors.earth }}>{f.member}, as an individual</div>
+                            <div className="text-xs" style={{ color: colors.earth }}>Dated: {f.date}</div>
+                        </div>
+                    </div>
+                </div>
+            );
+            const DocViewer = () => {
+                if (!docView) return null;
+                const title = docView === 'list' ? '📄 Source Documents' : docView === 'anna' ? "Anna's Operating Agreement · example" : 'Your Operating Agreement';
+                return (
+                    <div className="fixed inset-0 flex items-start justify-center p-4 overflow-y-auto" style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 60 }} onClick={() => setDocView(null)}>
+                        <div className="rounded-lg my-8 w-full" style={{ backgroundColor: '#fff', maxWidth: 640 }} onClick={(e) => e.stopPropagation()}>
+                            <div className="flex justify-between items-center p-4" style={{ borderBottom: `1px solid ${colors.earthLight}` }}>
+                                <div className="flex items-center gap-2">
+                                    {docView !== 'list' && <button onClick={() => setDocView('list')} className="text-sm border-0 bg-transparent cursor-pointer" style={{ color: colors.primary }}>← Documents</button>}
+                                    <span className="font-bold" style={{ color: colors.primary }}>{title}</span>
+                                </div>
+                                <button onClick={() => setDocView(null)} className="text-2xl border-0 bg-transparent cursor-pointer" style={{ color: colors.earth }} aria-label="Close">✕</button>
+                            </div>
+                            <div className="p-5" style={{ maxHeight: '74vh', overflowY: 'auto' }}>
+                                {docView === 'list' && (
+                                    <div className="space-y-2">
+                                        <button onClick={() => setDocView('anna')} className="w-full text-left rounded-lg p-3 cursor-pointer" style={{ border: `1px solid ${colors.clayDark}`, backgroundColor: '#faf9f6' }}>
+                                            <div className="font-semibold" style={{ color: colors.earthDark }}>Anna's Operating Agreement <span className="text-xs font-normal" style={{ color: colors.clayDark }}>· example</span></div>
+                                            <div className="text-xs" style={{ color: colors.earth }}>Maple Street Studio, LLC — for reference</div>
+                                        </button>
+                                        {generated ? (
+                                            <button onClick={() => setDocView('mine')} className="w-full text-left rounded-lg p-3 cursor-pointer" style={{ border: `1px solid ${colors.primary}`, backgroundColor: '#eef2f7' }}>
+                                                <div className="font-semibold" style={{ color: colors.earthDark }}>Your Operating Agreement</div>
+                                                <div className="text-xs" style={{ color: colors.earth }}>{entityName}{bothSigned ? ' — signed' : ''}</div>
+                                            </button>
+                                        ) : (
+                                            <div className="rounded-lg p-3 text-sm" style={{ backgroundColor: '#f4f4f1', color: colors.earth }}>Your Operating Agreement appears here once you generate it (in the next step).</div>
+                                        )}
+                                    </div>
+                                )}
+                                {docView === 'anna' && <FullAgreement f={annaFacts} />}
+                                {docView === 'mine' && <FullAgreement f={myFacts} mark={['7', '9', '17']} />}
+                            </div>
+                        </div>
+                    </div>
+                );
+            };
+
+            // ---------- balance sheet (contribution) ----------
+            const BalanceSheet = () => (
+                <div className="rounded-lg p-4" style={{ backgroundColor: '#fff', border: `1px solid ${colors.earthLight}` }}>
+                    <div className="text-center text-xs font-semibold uppercase tracking-wide mb-3" style={{ color: contributed ? colors.primary : colors.earth }}>
+                        {contributed ? entityName : 'The repair work — your books'}
+                        <div className="font-normal normal-case mt-0.5" style={{ color: colors.earth }}>Balance sheet · June 1, 2026</div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <div className="text-xs font-semibold uppercase mb-1" style={{ color: colors.earth }}>Assets</div>
+                            {assetRows.map(([k, v]) => (<div key={k} className="flex justify-between py-0.5" style={{ color: colors.earthDark }}><span>{k}</span><span className="mono">{v}</span></div>))}
+                            <div className="flex justify-between py-1 mt-1 font-bold" style={{ color: colors.earthDark, borderTop: `2px solid ${colors.earthDark}` }}><span>Assets</span><span className="mono">3,410</span></div>
+                        </div>
+                        <div>
+                            <div className="text-xs font-semibold uppercase mb-1" style={{ color: colors.earth }}>Liabilities & {contributed ? 'equity' : 'the net'}</div>
+                            <div className="flex justify-between py-0.5" style={{ color: colors.earthDark }}><span>Credit card</span><span className="mono">1,230</span></div>
+                            <div className="flex justify-between py-0.5" style={{ color: colors.earthDark }}><span>Customer advance — Smith</span><span className="mono">220</span></div>
+                            <div className="flex justify-between py-1 font-semibold" style={{ color: colors.earthDark, borderTop: `1px solid ${colors.earthLight}` }}><span>Liabilities</span><span className="mono">1,450</span></div>
+                            <div className="mt-1" style={{ backgroundColor: contributed ? colors.successBg : 'transparent', borderRadius: 4, padding: contributed ? '2px 4px' : '0', transition: 'background 0.4s' }}>
+                                <div className="flex justify-between py-0.5" style={{ color: colors.earthDark }}><span>{contributed ? 'Members’ capital — contributed' : '“What you put in”'}</span><span className="mono">1,790</span></div>
+                                <div className="flex justify-between py-0.5" style={{ color: colors.earthDark }}><span>{contributed ? 'Retained earnings' : '“What the work made”'}</span><span className="mono">170</span></div>
+                                <div className="flex justify-between py-1 font-bold" style={{ color: colors.earthDark, borderTop: `2px solid ${colors.earthDark}` }}><span>{contributed ? 'Members’ equity' : 'The net (have − owe)'}</span><span className="mono">1,960</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+
+            // ---------- phases ----------
+            const renderWelcome = () => (
+                <div className="fade-up">
+                    <Narrative><p style={{ color: colors.earthDark }}>The Certificate made the LLC <em>exist</em>. Now there's a second document — the one that says how it <strong>works</strong>. You ask Anna whether she can just send you hers.</p></Narrative>
+                    <AnnaCard>
+                        <p className="mb-2">“Ha — no, you write your <strong>own</strong>. Every LLC needs an <strong>Operating Agreement</strong> — the rulebook: who the member is, what they put in, who's on the hook. But it's <em>yours</em>, with your facts.”</p>
+                        <p>“Here's mine, just so you can see the <strong>shape</strong> of it —”</p>
+                    </AnnaCard>
+                    {/* Anna's example — a sample, clearly hers */}
+                    <div className="rounded-lg p-4 mb-4 serif" style={{ backgroundColor: '#faf9f6', border: `1px dashed ${colors.clayDark}`, opacity: 0.92 }}>
+                        <div className="flex justify-between items-start mb-2">
+                            <div className="text-center flex-1">
+                                <div className="font-bold" style={{ color: colors.earth, fontSize: 13, letterSpacing: '0.03em' }}>OPERATING AGREEMENT</div>
+                                <div style={{ color: colors.earth, fontSize: 11 }}>OF MAPLE STREET STUDIO, LLC</div>
+                            </div>
+                            <span className="text-xs px-2 py-0.5 rounded" style={{ backgroundColor: colors.clayLight, color: colors.clayDark, fontFamily: 'Inter, sans-serif', whiteSpace: 'nowrap' }}>Anna's — example</span>
+                        </div>
+                        <div style={{ color: colors.earth, fontSize: 12 }}>
+                            <div>§7&nbsp; <strong>Sole Member.</strong> The sole member is Anna Reyes.</div>
+                            <div>§9&nbsp; <strong>Capital Contributions.</strong> The member contributes the studio's assets and liabilities…</div>
+                            <div>§17&nbsp; <strong>Liability of the Sole Member.</strong> The member is not personally liable…</div>
+                            <div className="text-center mt-1" style={{ opacity: 0.6 }}>· · ·</div>
+                        </div>
+                    </div>
+                    <div className="mb-4"><button onClick={() => { playClick(); setDocView('anna'); }} className="text-sm font-semibold rounded-lg px-3 py-2 cursor-pointer" style={{ color: colors.primary, border: `1px solid ${colors.primary}`, backgroundColor: '#fff' }}>📄 Open Anna's full agreement →</button></div>
+                    <AnnaCard><p>“See the shape? Same sections for every LLC. Yours just carries <em>your</em> name, <em>your</em> business, <em>your</em> numbers. Generate it and we'll read it together.” <span className="text-xs" style={{ color: colors.primary }}>(Both agreements live under 📄 up top.)</span></p></AnnaCard>
+                    <Continue onClick={() => goPhase('agreement')}>Generate my Operating Agreement →</Continue>
+                </div>
+            );
+
+            const SigLine = ({ capLabel, role, signed, onSign }) => (
+                <div className="rounded-lg p-3" style={{ backgroundColor: '#fff', border: `1px solid ${colors.earthLight}` }}>
+                    <div className="text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: colors.earth }}>{capLabel}</div>
+                    <div style={{ minHeight: 38, borderBottom: `1px solid ${colors.earthDark}`, display: 'flex', alignItems: 'flex-end', paddingBottom: 2 }}>
+                        {signed ? (<span className="ink ink-in" style={{ fontSize: 24, color: '#1a2b6b' }}>{displayName}</span>) : (
+                            <button onClick={onSign} className="text-sm font-semibold border-0 rounded px-3 py-1.5 cursor-pointer" style={{ backgroundColor: colors.clayLight, color: colors.clayDark }}>✍ Sign here</button>
+                        )}
+                    </div>
+                    <div className="text-xs mt-1" style={{ color: colors.earth }}>{displayName}, <strong>{role}</strong></div>
+                </div>
+            );
+
+            const renderAgreement = () => {
+                if (!generated) {
+                    return (
+                        <div className="fade-up">
+                            <Narrative>
+                                <p className="mb-2" style={{ color: colors.earthDark }}>Everything the agreement needs, you already have: <strong>your name</strong>, your LLC's name, and the business you'll put in.</p>
+                                <p style={{ color: colors.earthDark }}>Confirm who's signing, then generate it.</p>
+                            </Narrative>
+                            <div className="rounded-lg p-4 mb-4" style={{ backgroundColor: '#fff', border: `1px solid ${colors.earthLight}` }}>
+                                <label htmlFor="mn" className="block text-sm font-semibold mb-2" style={{ color: colors.earthDark }}>The member (you)</label>
+                                <input id="mn" type="text" value={memberName} onChange={(e) => setMemberName(e.target.value)} placeholder="Type your name…" className="w-full rounded-lg px-3 py-2" style={{ fontSize: 16, border: `1px solid ${colors.clayDark}`, color: colors.earthDark, outline: 'none' }} />
+                                <div className="text-xs mt-2" style={{ color: colors.earth }}>Your LLC: <strong style={{ color: colors.primary }}>{entityName}</strong></div>
+                            </div>
+                            <button onClick={() => { if(memberName.trim()){try{localStorage.setItem('m2Member', memberName.trim());}catch(e){}} playReveal(); setGenerated(true); }} className="px-6 py-3 rounded-lg font-semibold text-white border-0" style={{ backgroundColor: colors.primary, cursor: 'pointer' }}>Generate my Operating Agreement →</button>
+                        </div>
+                    );
+                }
+                return (
+                    <div className="fade-up">
+                        <p className="text-sm mb-3" style={{ color: colors.earth }}>Here's <strong style={{ color: colors.earthDark }}>your</strong> Operating Agreement — the whole document, Schedule A and all. Read the <span style={{ color: colors.clayDark, fontWeight: 600 }}>★ marked</span> sections, then sign it at the bottom. <span className="text-xs">(Reopen it anytime from 📄 up top.)</span></p>
+                        <div className="rounded-lg p-6 mb-4" style={{ backgroundColor: '#fff', border: `1px solid ${colors.earthLight}`, boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
+                            <FullAgreement f={myFacts} mark={['7', '9', '17']} interactive />
+                        </div>
+                        {bothSigned && (
+                            <div className="fade-up">
+                                <div className="rounded-lg p-5" style={{ backgroundColor: colors.warningBg, border: `1px solid ${colors.warning}` }}>
+                                    <p style={{ color: '#92400e' }}>Two signatures. <strong>One hand.</strong> Your own name, signed twice — once <strong>for the Company</strong> (as its manager), once <strong>as yourself</strong> (the Sole Member). The two hats you felt back in 2.1 are now <strong>legal and literal</strong>: the law recognizes both of you, on one page.</p>
+                                </div>
+                                <Continue onClick={() => goPhase('contribution')}>Now drill into §9 — what you put in →</Continue>
+                            </div>
+                        )}
+                    </div>
+                );
+            };
+
+            const ClauseQuote = ({ children }) => (
+                <div className="rounded-lg p-3 mb-4 serif" style={{ backgroundColor: '#faf9f6', borderLeft: `3px solid ${colors.accent}`, color: colors.earthDark, fontSize: 13 }}>{children}</div>
+            );
+
+            const renderContribution = () => (
+                <div className="fade-up">
+                    <Narrative><p style={{ color: colors.earthDark }}>You read it in your agreement — <strong>Section 9, Capital Contributions</strong>. It says what you put into the Company. The answer is <em>everything</em>. <strong>Schedule A</strong> lists it at its existing book amounts. Move it in, and watch the totals.</p></Narrative>
+                    <ClauseQuote><strong>§9.</strong> “The Sole Member contributes the assets and liabilities of the bicycle-repair business, at their existing book amounts, as set forth on Schedule A.”</ClauseQuote>
+                    <BalanceSheet />
+                    {!contributed ? (
+                        <button onClick={() => { playReveal(); setContributed(true); }} className="px-6 py-3 rounded-lg font-semibold text-white border-0 mt-4" style={{ backgroundColor: colors.primary, cursor: 'pointer' }}>Contribute the business to the LLC →</button>
+                    ) : (
+                        <div className="fade-up mt-4">
+                            <div className="rounded-lg p-5" style={{ backgroundColor: colors.successBg, border: `1px solid ${colors.success}` }}>
+                                <p style={{ color: '#166534' }}><strong>Not one number changed.</strong> The same balance sheet you built informally is now the <strong>Company's</strong> — legally contributed in. Only the <em>words</em> on the right moved: “what you put in” became <strong>members' capital ($1,790)</strong>, “what the work made” became <strong>retained earnings ($170)</strong>. Same $1,960. The contributed slice and the earned slice stay separate — the history carries over intact.</p>
+                            </div>
+                            <Continue onClick={() => goPhase('wall')}>Now drill into §17 — the wall →</Continue>
+                        </div>
+                    )}
+                </div>
+            );
+
+            const renderWall = () => (
+                <div className="fade-up">
+                    <Narrative><p style={{ color: colors.earthDark }}>And <strong>Section 17, Liability of the Sole Member</strong>: the Company's debts are the <strong>Company's</strong>, not yours. Remember Smith's claim from 2.1 — the one that came after your savings, your car, even your earnings? Send it again, now that the wall exists.</p></Narrative>
+                    <ClauseQuote><strong>§17.</strong> “The Sole Member is not personally liable for the debts or obligations of the Company.”</ClauseQuote>
+                    <div className="rounded-lg p-5 mb-4" style={{ backgroundColor: '#fff', border: `1px solid ${colors.earthLight}` }}>
+                        <div className="grid items-stretch" style={{ gridTemplateColumns: '1fr 26px 1fr', gap: 0 }}>
+                            <div className="rounded-lg p-3" style={{ backgroundColor: claimRun ? colors.errorBg : '#faf8f3', border: `2px solid ${claimRun ? colors.error : colors.earthLight}`, transition: 'all 0.4s' }}>
+                                <div className="text-xs font-semibold uppercase mb-1" style={{ color: colors.earth }}>The Company</div>
+                                <div className="text-sm" style={{ color: colors.earthDark }}>{entityName}</div>
+                                <div className="text-xs mt-1" style={{ color: colors.earth }}>its tools, parts, fixtures, cash</div>
+                            </div>
+                            <div className="flex items-center justify-center">
+                                <div title="the LLC — limited liability" style={{ width: 6, alignSelf: 'stretch', margin: '0 auto', borderRadius: 3, backgroundColor: claimRun ? colors.primary : colors.earthLight, boxShadow: claimRun ? `0 0 0 3px rgba(0,53,107,0.15)` : 'none', transition: 'all 0.4s' }} />
+                            </div>
+                            <div className="rounded-lg p-3" style={{ backgroundColor: claimRun ? colors.successBg : '#faf8f3', border: `2px solid ${claimRun ? colors.success : colors.earthLight}`, transition: 'all 0.4s' }}>
+                                <div className="text-xs font-semibold uppercase mb-1" style={{ color: colors.earth }}>You</div>
+                                <div className="text-sm" style={{ color: colors.earthDark }}>your savings, car, earnings</div>
+                                {claimRun && <div className="text-xs mt-1 font-semibold fade-up" style={{ color: colors.success }}>✓ behind the wall — safe</div>}
+                            </div>
+                        </div>
+                        <div className="text-center my-3" style={{ height: 18 }}>{claimRun && <span className="text-xs font-semibold fade-up" style={{ color: colors.primary }}>the claim reaches the Company — and stops at the wall</span>}</div>
+                        {!claimRun ? (
+                            <button onClick={() => { playThud(); setClaimRun(true); }} className="px-5 py-2.5 rounded-lg font-semibold text-white border-0" style={{ backgroundColor: colors.error, cursor: 'pointer' }}>Send Smith's claim again →</button>
+                        ) : (
+                            <div className="fade-up">
+                                <div className="rounded-lg p-4" style={{ backgroundColor: colors.warningBg, border: `1px solid ${colors.warning}` }}><p className="text-sm" style={{ color: '#92400e' }}>This is the wall Maria wanted. <strong>Limited liability</strong> is a <em>legal</em> fact — it changes <strong>who can be pursued</strong>, not what the records show. The balance sheet didn't move; the exposure did.</p></div>
+                                <Continue onClick={() => goPhase('keystone')}>One last thing →</Continue>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+
+            const keystoneOptions = [
+                { id: 'cert', label: 'When you filed the Certificate (2.2)' },
+                { id: 'oa', label: 'Just now, when you signed this agreement' },
+                { id: '1.1', label: 'Back in 1.1 — when you first drew the line in your books' },
+            ];
+
+            const renderKeystone = () => (
+                <div className="fade-up">
+                    <Narrative>
+                        <p style={{ color: colors.earthDark }}>A legal body. Rules. Your business inside it. A wall. It really feels like the repair work <em>became real</em> today. So, a question worth sitting with:</p>
+                        <p className="mt-2 font-semibold" style={{ color: colors.primary }}>When did this entity actually become real?</p>
+                    </Narrative>
+                    <div className="space-y-2">
+                        {keystoneOptions.map(o => {
+                            const picked = keystonePick === o.id; const isRight = o.id === '1.1'; const show = keystonePick !== null;
+                            return (
+                                <button key={o.id} onClick={() => { if (!keystoneRight) { o.id === '1.1' ? playReveal() : playThud(); setKeystonePick(o.id); } }}
+                                    className="w-full text-left rounded-lg p-3 border-0 cursor-pointer" style={{ backgroundColor: show && picked ? (isRight ? colors.successBg : colors.errorBg) : '#fff', border: `2px solid ${show && picked ? (isRight ? colors.success : colors.error) : colors.clayDark}`, transition: 'all 0.25s' }}>
+                                    <span style={{ color: colors.earthDark }}>{o.label}</span>
+                                    {show && picked && !isRight && <span className="block text-xs mt-1" style={{ color: colors.error }}>Not quite — that's the day it became a <em>legal</em> entity. Try again.</span>}
+                                </button>
+                            );
+                        })}
+                    </div>
+                    {keystoneRight && (
+                        <div className="fade-up mt-4">
+                            <div className="rounded-lg p-5 mb-4" style={{ backgroundColor: colors.warningBg, borderLeft: `4px solid ${colors.accent}` }}>
+                                <p style={{ color: '#92400e' }}>Right. This document gave the operation a legal body — but it <strong>did not create the entity</strong>. You've kept these books, this boundary, since <strong>1.1</strong>. The <strong>accounting</strong> line came first — by months, and in a real firm, by years.</p>
+                            </div>
+                            <div className="rounded-lg p-5" style={{ backgroundColor: colors.primary }}>
+                                <div className="text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: colors.accent }}>The keystone</div>
+                                <p className="text-white text-lg font-bold mb-2">Accounting&#8209;entity ≠ legal&#8209;entity.</p>
+                                <p className="text-sm" style={{ color: colors.earthLight }}>The accounting entity is a boundary you drew <em>for information</em> — it can exist with or without any legal body, and here it came first. The LLC is a legal wrapper placed around it. Getting an LLC didn't make the entity “finally real”; it was a real <em>accounting</em> entity all along.</p>
+                            </div>
+                            <Continue onClick={() => goPhase('complete')}>Finish up →</Continue>
+                        </div>
+                    )}
+                </div>
+            );
+
+            const renderComplete = () => (
+                <div className="fade-up">
+                    <div className="text-center mb-5"><div className="text-5xl mb-2">🗝️</div><h2 className="text-xl font-bold" style={{ color: colors.primary }}>Accounting-entity ≠ legal-entity</h2></div>
+                    <div className="rounded-lg p-5 mb-4" style={{ backgroundColor: '#fff', border: `1px solid ${colors.earthLight}` }}>
+                        <div className="font-semibold mb-3" style={{ color: colors.earthDark }}>What you worked out</div>
+                        <ul className="space-y-2 text-sm">
+                            {[
+                                'You wrote your own Operating Agreement — Anna’s was only an example.',
+                                'You signed it once for the Company and once as yourself — the two “you’s” made legal and literal.',
+                                'The whole business was contributed in at book carryover — not one number changed; “what you put in” became members’ capital ($1,790 + $170 retained = $1,960).',
+                                'Limited liability put a wall between the Company’s debts and your personal life — who can be pursued, not what the records show.',
+                                'And the keystone: the accounting entity (since 1.1) is not the legal entity (days old). A legal body was wrapped around a boundary that already existed.',
+                            ].map((t, i) => (<li key={i} className="flex gap-2 items-start" style={{ color: colors.earthDark }}><span style={{ color: colors.success }}>✓</span><span>{t}</span></li>))}
+                        </ul>
+                    </div>
+                    <div className="rounded-lg p-5 mb-4" style={{ backgroundColor: colors.warningBg, borderLeft: `4px solid ${colors.accent}` }}>
+                        <div className="font-semibold mb-1" style={{ color: '#92400e' }}>💡 The deeper point</div>
+                        <p className="text-sm" style={{ color: '#92400e' }}>The same machine runs all the way up. A giant company draws <strong>one</strong> accounting boundary around <strong>dozens</strong> of separate legal companies; you drew one around an operation that, for now, has a single legal body younger than itself. The accounting line and the legal line are <strong>different lines, drawn for different reasons</strong> — and they rarely coincide.</p>
+                    </div>
+                    <div className="rounded-lg p-5 mb-5" style={{ backgroundColor: colors.clayLight, border: `1px solid ${colors.clayDark}` }}>
+                        <div className="text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: colors.clayDark }}>Coming next</div>
+                        <div className="font-semibold" style={{ color: colors.earthDark }}>2.4 — The Entity's Own Number, and Stopping the Co-mingling</div>
+                        <p className="text-sm mt-1" style={{ color: colors.earth }}>The Company needs its own identity to the outside world — an EIN, its own bank account and card. The separation you've drawn by hand since 1.1 finally goes institutional.</p>
+                    </div>
+                    <div className="flex gap-3">
+                        <a href="24-the-entitys-own-number.html" className="px-6 py-3 rounded-lg font-semibold text-white no-underline inline-block" style={{ backgroundColor: colors.primary }}>Next: 2.4 →</a>
+                        <button onClick={handleRestart} className="px-6 py-3 rounded-lg font-semibold border-0" style={{ backgroundColor: 'transparent', color: colors.primary, border: `2px solid ${colors.primary}`, cursor: 'pointer' }}>↺ Restart</button>
+                    </div>
+                </div>
+            );
+
+            const renderPhase = () => {
+                if (phase === 'welcome') return renderWelcome();
+                if (phase === 'agreement') return renderAgreement();
+                if (phase === 'contribution') return renderContribution();
+                if (phase === 'wall') return renderWall();
+                if (phase === 'keystone') return renderKeystone();
+                if (phase === 'complete') return renderComplete();
+                return null;
+            };
+
+            return (
+                <div className="min-h-screen py-6 px-4" style={{ backgroundColor: colors.sand }}>
+                    <div className="max-w-2xl mx-auto"><Header />{renderPhase()}</div>
+                    {showGlossary && <GlossaryModal />}
+                    <DocViewer />
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<TutorialApp />);
+    </script>
+</body>
+</html>

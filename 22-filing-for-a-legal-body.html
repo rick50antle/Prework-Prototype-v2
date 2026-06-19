@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Activity 2.2: Filing for a Legal Body</title>
+    <link href="lib/font-3.css" rel="stylesheet">
+    <link href="lib/font-4.css" rel="stylesheet">
+    <script src="lib/tailwind.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        .serif { font-family: Georgia, 'Times New Roman', serif; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-up { animation: fadeUp 0.4s ease-out both; }
+        @keyframes stampIn { 0% { opacity: 0; transform: scale(1.6) rotate(-12deg); } 60% { opacity: 1; transform: scale(0.92) rotate(-12deg); } 100% { transform: scale(1) rotate(-12deg); } }
+        .stamp-in { animation: stampIn 0.5s ease-out both; }
+    </style>
+</head>
+<body class="min-h-screen" style="background-color: #f5f1e8;">
+    <div id="root"></div>
+    <script src="lib/react.production.min.js"></script>
+    <script src="lib/react-dom.production.min.js"></script>
+    <script src="lib/babel.min.js?v=7"></script>
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        /**
+         * Activity 2.2: Filing for a Legal Body
+         * CMU METALS / Yale SOM Accounting Prework — Module 2, Activity 2
+         *
+         * @version 0.1
+         * @date 2026-06-18
+         * @description A legal entity is born by an act of state. Anna points to the
+         *   simplest path; the student names the LLC (the "shop" noun is earned),
+         *   files the CT Certificate of Organization, and discovers that the moment
+         *   it exists a new legal person is born — yet no tool moved and the balance
+         *   sheet is identical. The accounting line (since 1.1) is years older than
+         *   the legal line (today). Renders Module-2-Play-Script.md Scene 2.2 (v4).
+         *   Keystone is SET UP, not named (2.3 names it). Balance sheet does NOT
+         *   change on filing day. Formation = Connecticut (home state).
+         */
+
+        const colors = {
+            primary: '#00356b', sand: '#f5f1e8', earth: '#8b7355', earthLight: '#d4c4a8',
+            earthDark: '#5c4d3d', accent: '#c9a227', clay: '#c4a574', clayLight: '#e8dcc8',
+            clayDark: '#a08050', success: '#22c55e', successBg: '#f0fdf4', warning: '#f59e0b',
+            warningBg: '#fffbeb', error: '#dc2626', errorBg: '#fef2f2',
+        };
+
+        const glossaryTerms = [
+            { term: 'Certificate of Organization', definition: 'In Connecticut, the one-page filing that brings a limited liability company (LLC) into legal existence. (Delaware calls its version a "Certificate of Formation.")' },
+            { term: 'Legal entity', definition: 'A "person" in the eyes of the law that can own things, owe debts, sign contracts, and be sued — separate from the human beings behind it. An LLC is one.' },
+            { term: 'Registered agent', definition: 'The person or office an LLC names to receive legal mail at a real in-state address. A small owner often serves as their own.' },
+            { term: 'LLC', definition: 'Limited Liability Company — a legal form that holds the operation and stands as a wall between a claim and the owner’s personal life.' },
+        ];
+
+        const createAudioContext = () => new (window.AudioContext || window.webkitAudioContext)();
+        const playClick = () => { try { const c=createAudioContext(),o=c.createOscillator(),g=c.createGain(); o.connect(g);g.connect(c.destination); o.frequency.value=660;o.type='sine'; const t=c.currentTime; g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(0.15,t+0.01);g.gain.exponentialRampToValueAtTime(0.01,t+0.1); o.start(t);o.stop(t+0.12); setTimeout(()=>c.close(),200);}catch(e){} };
+        const playReveal = () => { try { const c=createAudioContext(); [523.25,659.25,783.99].forEach((f,i)=>{const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=f;o.type='sine';const t=c.currentTime+i*0.1;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(0.25,t+0.02);g.gain.exponentialRampToValueAtTime(0.01,t+0.15);o.start(t);o.stop(t+0.25);}); setTimeout(()=>c.close(),600);}catch(e){} };
+        const playStamp = () => { try { const c=createAudioContext(),o=c.createOscillator(),g=c.createGain(); o.connect(g);g.connect(c.destination); o.frequency.value=180;o.type='triangle'; const t=c.currentTime; g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(0.35,t+0.01);g.gain.exponentialRampToValueAtTime(0.01,t+0.25); o.start(t);o.stop(t+0.3); setTimeout(()=>c.close(),400);}catch(e){} };
+
+        const phaseOrder = ['welcome', 'name', 'file', 'whatChanged', 'complete'];
+
+        const movedItems = [
+            { id: 'legal', label: 'Your legal standing', changed: true,
+              before: 'You, personally — one person', after: 'A separate legal person now exists' },
+            { id: 'ops', label: 'Your tools, customers, the work today', changed: false,
+              before: 'Same bench, same jobs', after: 'Exactly the same — nothing moved' },
+            { id: 'sheet', label: 'The balance sheet', changed: false,
+              before: 'A $3,410 − L $1,450 = $1,960', after: 'A $3,410 − L $1,450 = $1,960' },
+        ];
+
+        function TutorialApp() {
+            const [phase, setPhase] = useState('welcome');
+            const [showGlossary, setShowGlossary] = useState(false);
+            const [devMode, setDevMode] = useState(false);
+            const [headerClickCount, setHeaderClickCount] = useState(0);
+
+            const [memberName, setMemberName] = useState('');
+            const [filed, setFiled] = useState(false);
+            const [movedOpened, setMovedOpened] = useState([]);
+
+            const displayName = (memberName.trim() || '[Your Name]');
+            const entityName = displayName + "’s Bike Repairs, LLC";
+            const progress = Math.round((phaseOrder.indexOf(phase) / (phaseOrder.length - 1)) * 100);
+            const allMovedOpened = movedItems.every(m => movedOpened.includes(m.id));
+
+            const handleHeaderClick = () => { const n = headerClickCount + 1; setHeaderClickCount(n); if (n >= 3) { setDevMode(!devMode); setHeaderClickCount(0); } };
+            const goPhase = (p) => { playClick(); setPhase(p); };
+            const handleRestart = () => { playClick(); setPhase('welcome'); setMemberName(''); setFiled(false); setMovedOpened([]); };
+
+            useEffect(() => {
+                const onKey = (e) => { if (e.key === 'Escape') setShowGlossary(false); };
+                window.addEventListener('keydown', onKey);
+                return () => window.removeEventListener('keydown', onKey);
+            }, []);
+
+            const Header = () => (
+                <div className="rounded-lg p-4 mb-5" style={{ backgroundColor: colors.primary }}>
+                    <div className="flex justify-between items-start">
+                        <div onClick={handleHeaderClick} style={{ cursor: 'pointer' }}>
+                            <h1 className="text-lg font-bold text-white">Activity 2.2: Filing for a Legal Body</h1>
+                            <p className="text-sm mt-1" style={{ color: colors.earthLight }}>Module 2 · Getting Formal &nbsp;•&nbsp; ~10 min</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <a href="index.html" className="p-2 rounded-lg text-white text-xl cursor-pointer" title="Contents" aria-label="Back to contents"
+                               style={{ transition: 'background 0.2s', textDecoration: 'none' }}
+                               onMouseOver={(e)=>e.currentTarget.style.background='rgba(255,255,255,0.1)'} onMouseOut={(e)=>e.currentTarget.style.background='transparent'}>🏠</a>
+                            <button onClick={() => setShowGlossary(true)} className="p-2 rounded-lg text-white text-xl border-0 bg-transparent cursor-pointer" title="Glossary" aria-label="Open glossary"
+                               style={{ transition: 'background 0.2s' }}
+                               onMouseOver={(e)=>e.currentTarget.style.background='rgba(255,255,255,0.1)'} onMouseOut={(e)=>e.currentTarget.style.background='transparent'}>📖</button>
+                            <button onClick={handleRestart} className="p-2 rounded-lg text-white text-xl border-0 bg-transparent cursor-pointer" title="Restart" aria-label="Restart activity"
+                               style={{ transition: 'background 0.2s' }}
+                               onMouseOver={(e)=>e.currentTarget.style.background='rgba(255,255,255,0.1)'} onMouseOut={(e)=>e.currentTarget.style.background='transparent'}>↺</button>
+                        </div>
+                    </div>
+                    <div className="mt-4">
+                        <div className="flex justify-between text-xs mb-1" style={{ color: 'rgba(255,255,255,0.7)' }}><span>Progress</span><span>{progress}%</span></div>
+                        <div className="h-2 rounded-full" style={{ backgroundColor: 'rgba(255,255,255,0.2)' }} role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}>
+                            <div className="h-full rounded-full" style={{ width: `${progress}%`, backgroundColor: colors.accent, transition: 'width 0.5s' }} />
+                        </div>
+                    </div>
+                    {devMode && (
+                        <div className="mt-3 pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.2)' }}>
+                            <p className="text-xs mb-2" style={{ color: 'rgba(255,255,255,0.7)' }}>Dev: skip to phase</p>
+                            <div className="flex flex-wrap gap-1">
+                                {phaseOrder.map(p => (
+                                    <button key={p} onClick={() => setPhase(p)} className="px-2 py-1 rounded text-xs border-0 cursor-pointer"
+                                        style={{ backgroundColor: phase === p ? 'white' : 'rgba(255,255,255,0.2)', color: phase === p ? colors.primary : 'white' }}>{p}</button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+
+            const Continue = ({ onClick, children, disabled }) => (
+                <button onClick={onClick} disabled={disabled} className="px-6 py-3 rounded-lg font-semibold text-white border-0 mt-5"
+                    style={{ backgroundColor: disabled ? colors.earthLight : colors.primary, cursor: disabled ? 'not-allowed' : 'pointer', transition: 'background 0.2s' }}>
+                    {children || 'Continue →'}
+                </button>
+            );
+
+            const Narrative = ({ children }) => (
+                <div className="rounded-lg p-5 mb-4" style={{ backgroundColor: '#fff', borderLeft: `4px solid ${colors.accent}` }}>{children}</div>
+            );
+
+            const AnnaCard = ({ children }) => (
+                <div className="rounded-lg p-4 mb-4 flex gap-3" style={{ backgroundColor: '#eef2f7', border: `1px solid ${colors.primary}` }}>
+                    <div className="flex-shrink-0 rounded-full flex items-center justify-center font-bold text-white" style={{ width: 38, height: 38, backgroundColor: colors.primary }}>A</div>
+                    <div className="text-sm" style={{ color: colors.earthDark }}>
+                        <div className="font-semibold mb-1" style={{ color: colors.primary }}>Anna · formed her own LLC</div>
+                        {children}
+                    </div>
+                </div>
+            );
+
+            const GlossaryModal = () => (
+                <div className="fixed inset-0 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 50 }} onClick={() => setShowGlossary(false)}>
+                    <div className="rounded-lg p-6 max-w-md w-full" style={{ backgroundColor: '#fff', maxHeight: '80vh', overflowY: 'auto' }} onClick={(e) => e.stopPropagation()}>
+                        <div className="flex justify-between items-center mb-4">
+                            <h2 className="text-lg font-bold" style={{ color: colors.primary }}>📖 Glossary</h2>
+                            <button onClick={() => setShowGlossary(false)} className="text-2xl border-0 bg-transparent cursor-pointer" style={{ color: colors.earth }} aria-label="Close glossary">✕</button>
+                        </div>
+                        {glossaryTerms.map((t, i) => (
+                            <div key={i} className="mb-3 pb-3" style={{ borderBottom: i < glossaryTerms.length - 1 ? `1px solid ${colors.earthLight}` : 'none' }}>
+                                <div className="font-semibold" style={{ color: colors.earthDark }}>{t.term}</div>
+                                <div className="text-sm mt-1" style={{ color: colors.earth }}>{t.definition}</div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+
+            // ---------- phases ----------
+            const renderWelcome = () => (
+                <div className="fade-up">
+                    <Narrative>
+                        <p className="mb-3" style={{ color: colors.earthDark }}>
+                            You left Maria wanting one thing: a <strong>legal wall</strong> between the repair work and your own pocket — the
+                            kind a policy can't give you. So you call <strong>Anna</strong>, who runs a small studio and went through this herself.
+                        </p>
+                        <p style={{ color: colors.earthDark }}>She doesn't overthink it.</p>
+                    </Narrative>
+                    <AnnaCard>
+                        <p className="mb-2">“Form an <strong>LLC</strong>. That's the wall. I did it for the studio — honestly, it's a couple of forms.”</p>
+                        <p>“Start with the one that actually brings it into existence. After that, it's a legal <em>person</em> — and the claims that scared you stop at <em>its</em> door, not yours.”</p>
+                    </AnnaCard>
+                    <div className="rounded-lg p-5" style={{ backgroundColor: colors.clayLight, border: `1px solid ${colors.clayDark}` }}>
+                        <div className="font-semibold mb-2" style={{ color: colors.clayDark }}>What you'll work out</div>
+                        <ul className="space-y-2 text-sm" style={{ color: colors.earthDark }}>
+                            <li className="flex gap-2 items-start"><span>•</span><span>What it actually takes to bring a legal entity into existence.</span></li>
+                            <li className="flex gap-2 items-start"><span>•</span><span>What changes the instant it exists — and what, surprisingly, doesn't.</span></li>
+                            <li className="flex gap-2 items-start"><span>•</span><span>Which is older: the legal body, or the operation it wraps.</span></li>
+                        </ul>
+                    </div>
+                    <Continue onClick={() => goPhase('name')}>Get started →</Continue>
+                </div>
+            );
+
+            const renderName = () => (
+                <div className="fade-up">
+                    <Narrative>
+                        <p style={{ color: colors.earthDark }}>
+                            First, your LLC needs a <strong>name</strong>. Until now it's just been “the repair work” or “the operation.” Now it
+                            gets one of its <em>own</em> — and it'll carry <strong>your</strong> name, even as it becomes legally separate from you.
+                        </p>
+                    </Narrative>
+                    <div className="rounded-lg p-5 mb-4" style={{ backgroundColor: '#fff', border: `1px solid ${colors.earthLight}` }}>
+                        <label htmlFor="memberName" className="block text-sm font-semibold mb-2" style={{ color: colors.earthDark }}>Your name</label>
+                        <input id="memberName" type="text" value={memberName}
+                            onChange={(e) => setMemberName(e.target.value)}
+                            onKeyDown={(e) => { if (e.key === 'Enter' && memberName.trim()) { try{localStorage.setItem('m2Member', memberName.trim());}catch(err){} goPhase('file'); } }}
+                            placeholder="Type your name…"
+                            className="w-full rounded-lg px-3 py-2 mb-4"
+                            style={{ fontSize: 16, border: `1px solid ${colors.clayDark}`, color: colors.earthDark, outline: 'none' }} />
+                        <div className="text-xs uppercase tracking-wide mb-1" style={{ color: colors.earth }}>Your LLC will be called</div>
+                        <div className="rounded-lg px-4 py-3 serif text-center" style={{ backgroundColor: colors.clayLight, color: colors.primary, fontSize: 20, fontWeight: 700, letterSpacing: '0.01em' }}>
+                            {entityName}
+                        </div>
+                        {!memberName.trim() && (
+                            <p className="text-xs mt-2" style={{ color: colors.earth }}>Type a name (or leave it — the documents carry a <span className="mono">[Your Name]</span> placeholder you can imagine as your own).</p>
+                        )}
+                    </div>
+                    <Continue onClick={() => { if(memberName.trim()){try{localStorage.setItem('m2Member', memberName.trim());}catch(err){}} goPhase('file'); }}>Lock in the name →</Continue>
+                </div>
+            );
+
+            const renderFile = () => (
+                <div className="fade-up">
+                    <p className="text-sm mb-3" style={{ color: colors.earth }}>
+                        Here's the document Anna meant — Connecticut's <strong style={{ color: colors.earthDark }}>Certificate of Organization</strong>. Read it over, then file it.
+                    </p>
+
+                    {/* Certificate facsimile */}
+                    <div className="rounded-lg p-6 mb-4 serif" style={{ backgroundColor: '#fff', border: `1px solid ${colors.earthLight}`, position: 'relative', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
+                        {filed && (
+                            <div className="stamp-in" style={{ position: 'absolute', top: 22, right: 18, border: `3px solid ${colors.success}`, color: colors.success, borderRadius: 8, padding: '4px 12px', fontWeight: 800, fontFamily: 'Inter, sans-serif', fontSize: 13, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                                Filed · Jun 1, 2026
+                            </div>
+                        )}
+                        <div className="text-center font-bold" style={{ color: colors.earthDark, fontSize: 17, letterSpacing: '0.04em' }}>CERTIFICATE OF ORGANIZATION</div>
+                        <div className="text-center" style={{ color: colors.earth, fontSize: 12 }}>OF</div>
+                        <div className="text-center font-bold mb-4" style={{ color: colors.primary, fontSize: 15 }}>{entityName.toUpperCase()}</div>
+                        <p className="mb-3" style={{ color: colors.earthDark, fontSize: 13.5, textAlign: 'justify' }}>
+                            This Certificate of Organization of {entityName}, dated June 1, 2026, is executed and filed by {displayName}, as an authorized person, to form a limited liability company under the Connecticut Uniform Limited Liability Company Act (Conn. Gen. Stat. § 34-243, <em>et seq.</em>).
+                        </p>
+                        <div style={{ color: colors.earthDark, fontSize: 13 }}>
+                            <div className="mb-2"><span className="font-bold" style={{ fontSize: 11.5, letterSpacing: '0.03em' }}>FIRST.</span>&nbsp; Name: <strong>{entityName}</strong></div>
+                            <div className="mb-2"><span className="font-bold" style={{ fontSize: 11.5, letterSpacing: '0.03em' }}>SECOND.</span>&nbsp; Registered agent: {displayName}, 142 Whalley Avenue, Unit B, New Haven, Connecticut 06511 — the principal office.</div>
+                            <div className="mb-1"><span className="font-bold" style={{ fontSize: 11.5, letterSpacing: '0.03em' }}>THIRD.</span>&nbsp; Management is vested in the member(s).</div>
+                        </div>
+                    </div>
+
+                    {!filed ? (
+                        <button onClick={() => { playStamp(); setFiled(true); }} className="px-6 py-3 rounded-lg font-semibold text-white border-0"
+                            style={{ backgroundColor: colors.primary, cursor: 'pointer' }}>File with the State of Connecticut →</button>
+                    ) : (
+                        <div className="fade-up">
+                            <div className="rounded-lg p-5 mb-2" style={{ backgroundColor: colors.successBg, border: `1px solid ${colors.success}` }}>
+                                <p style={{ color: '#166534' }}>
+                                    The State accepts the filing. As of this moment, <strong>{entityName}</strong> exists — a brand-new <strong>legal person</strong>,
+                                    able to own things, owe debts, and be sued in its own name.
+                                </p>
+                            </div>
+                            <p className="text-xs mb-1 px-1" style={{ color: colors.earth }}>
+                                You filed in <strong>Connecticut</strong> — your home state, simple and cheap. (The biggest companies shop for Delaware's
+                                business-friendly courts; a one-person shop just forms where it works. Even <em>which state</em> is a choice.)
+                            </p>
+                            <Continue onClick={() => goPhase('whatChanged')}>So what just changed? →</Continue>
+                        </div>
+                    )}
+                </div>
+            );
+
+            const renderWhatChanged = () => (
+                <div className="fade-up">
+                    <Narrative>
+                        <p style={{ color: colors.earthDark }}>
+                            A legal person was just born. That <em>feels</em> like a big change. So walk the shop and check:
+                            <strong> what actually moved?</strong> Tap each one.
+                        </p>
+                    </Narrative>
+
+                    <div className="space-y-3">
+                        {movedItems.map(m => {
+                            const opened = movedOpened.includes(m.id);
+                            return (
+                                <div key={m.id} onClick={() => { if (!opened) { m.changed ? playReveal() : playClick(); setMovedOpened(prev => [...prev, m.id]); } }}
+                                    className="rounded-lg p-4" style={{ cursor: opened ? 'default' : 'pointer', backgroundColor: '#fff',
+                                        border: `2px solid ${opened ? (m.changed ? colors.accent : colors.success) : colors.clayDark}`, transition: 'all 0.3s' }}>
+                                    <div className="flex justify-between items-center">
+                                        <span className="font-semibold" style={{ color: colors.earthDark }}>{m.label}</span>
+                                        {opened ? (
+                                            <span className="text-xs font-bold px-2 py-0.5 rounded fade-up" style={{ color: '#fff', backgroundColor: m.changed ? colors.accent : colors.success }}>
+                                                {m.changed ? 'CHANGED' : 'UNCHANGED'}
+                                            </span>
+                                        ) : (<span className="text-xs" style={{ color: colors.clayDark }}>tap →</span>)}
+                                    </div>
+                                    {opened && (
+                                        <div className="text-sm mt-2 fade-up" style={{ color: colors.earth }}>
+                                            {m.id === 'sheet' ? (
+                                                <span className="mono" style={{ color: colors.earthDark }}>{m.after}</span>
+                                            ) : m.after}
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    {allMovedOpened && (
+                        <div className="fade-up mt-4">
+                            <div className="rounded-lg p-5 mb-4" style={{ backgroundColor: colors.warningBg, border: `1px solid ${colors.warning}` }}>
+                                <p style={{ color: '#92400e' }}>
+                                    One thing changed — your <strong>legal standing</strong>. The operation didn't move an inch, and the balance sheet is
+                                    <strong> identical</strong>. A legal <em>wrapper</em> was born; nothing economic happened. <strong>No tool moved today.</strong>
+                                </p>
+                            </div>
+
+                            {/* two birthdays */}
+                            <div className="rounded-lg p-5 mb-2" style={{ backgroundColor: '#fff', border: `1px solid ${colors.earthLight}` }}>
+                                <div className="text-xs font-semibold uppercase tracking-wide mb-4" style={{ color: colors.earth }}>Two birthdays</div>
+                                <div style={{ position: 'relative', height: 64 }}>
+                                    <div style={{ position: 'absolute', top: 28, left: 0, right: 0, height: 2, backgroundColor: colors.earthLight }} />
+                                    <div style={{ position: 'absolute', top: 20, left: '6%', textAlign: 'center', transform: 'translateX(-50%)' }}>
+                                        <div style={{ width: 14, height: 14, borderRadius: '50%', backgroundColor: colors.primary, margin: '0 auto' }} />
+                                    </div>
+                                    <div style={{ position: 'absolute', top: 44, left: '6%', transform: 'translateX(-50%)', fontSize: 11, color: colors.primary, fontWeight: 600, whiteSpace: 'nowrap' }}>accounting line<br/>since 1.1</div>
+                                    <div style={{ position: 'absolute', top: 20, left: '94%', textAlign: 'center', transform: 'translateX(-50%)' }}>
+                                        <div style={{ width: 14, height: 14, borderRadius: '50%', backgroundColor: colors.accent, margin: '0 auto' }} />
+                                    </div>
+                                    <div style={{ position: 'absolute', top: 44, left: '94%', transform: 'translateX(-50%)', fontSize: 11, color: colors.clayDark, fontWeight: 600, whiteSpace: 'nowrap' }}>legal line<br/>today</div>
+                                    <div style={{ position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)', fontSize: 11, color: colors.earth }}>← months of real operating →</div>
+                                </div>
+                            </div>
+                            <p className="text-sm px-1 mb-1" style={{ color: colors.earthDark }}>
+                                Two different lines, drawn at two different times, for two different reasons. The operation has been running — and you've
+                                kept its books — since long before today. The legal body is <strong>hours old</strong>.
+                            </p>
+                            <Continue onClick={() => goPhase('complete')}>Finish up →</Continue>
+                        </div>
+                    )}
+                </div>
+            );
+
+            const renderComplete = () => (
+                <div className="fade-up">
+                    <div className="text-center mb-5">
+                        <div className="text-5xl mb-2">🏛️</div>
+                        <h2 className="text-xl font-bold" style={{ color: colors.primary }}>A legal body — born today, wrapping work that's older</h2>
+                    </div>
+                    <div className="rounded-lg p-5 mb-4" style={{ backgroundColor: '#fff', border: `1px solid ${colors.earthLight}` }}>
+                        <div className="font-semibold mb-3" style={{ color: colors.earthDark }}>What you worked out</div>
+                        <ul className="space-y-2 text-sm">
+                            {[
+                                'A legal entity is born by a filing — one page, and a new legal person exists.',
+                                'The instant it existed, nothing about the operation changed: same tools, same customers, same balance sheet.',
+                                'The legal line is brand-new; the accounting line you drew back in 1.1 is far older.',
+                                'Your shop carries your name — yet it’s now legally a separate person from you.',
+                            ].map((t, i) => (
+                                <li key={i} className="flex gap-2 items-start" style={{ color: colors.earthDark }}><span style={{ color: colors.success }}>✓</span><span>{t}</span></li>
+                            ))}
+                        </ul>
+                    </div>
+                    <div className="rounded-lg p-5 mb-4" style={{ backgroundColor: colors.warningBg, borderLeft: `4px solid ${colors.accent}` }}>
+                        <div className="font-semibold mb-1" style={{ color: '#92400e' }}>💡 The deeper point</div>
+                        <p className="text-sm" style={{ color: '#92400e' }}>
+                            The Certificate gave the operation a <strong>legal body</strong> — but it didn't <em>create</em> the operation. You've kept these
+                            books, this boundary, since 1.1. There's a legal line and an accounting line, and they're <strong>not the same line</strong>.
+                            Next, they finally get a name.
+                        </p>
+                    </div>
+                    <div className="rounded-lg p-5 mb-5" style={{ backgroundColor: colors.clayLight, border: `1px solid ${colors.clayDark}` }}>
+                        <div className="text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: colors.clayDark }}>Coming next</div>
+                        <div className="font-semibold" style={{ color: colors.earthDark }}>2.3 — The Rules and the Two Signatures</div>
+                        <p className="text-sm mt-1" style={{ color: colors.earth }}>Anna hands you the Operating Agreement — the LLC's rulebook. You'll sign it twice, move your whole business into it, and finally name what's been true since 1.1.</p>
+                    </div>
+                    <div className="flex gap-3">
+                        <a href="23-the-rules-and-two-signatures.html" className="px-6 py-3 rounded-lg font-semibold text-white no-underline inline-block" style={{ backgroundColor: colors.primary }}>Next: 2.3 →</a>
+                        <button onClick={handleRestart} className="px-6 py-3 rounded-lg font-semibold border-0" style={{ backgroundColor: 'transparent', color: colors.primary, border: `2px solid ${colors.primary}`, cursor: 'pointer' }}>↺ Restart</button>
+                    </div>
+                </div>
+            );
+
+            const renderPhase = () => {
+                if (phase === 'welcome') return renderWelcome();
+                if (phase === 'name') return renderName();
+                if (phase === 'file') return renderFile();
+                if (phase === 'whatChanged') return renderWhatChanged();
+                if (phase === 'complete') return renderComplete();
+                return null;
+            };
+
+            return (
+                <div className="min-h-screen py-6 px-4" style={{ backgroundColor: colors.sand }}>
+                    <div className="max-w-2xl mx-auto">
+                        <Header />
+                        {renderPhase()}
+                    </div>
+                    {showGlossary && <GlossaryModal />}
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<TutorialApp />);
+    </script>
+</body>
+</html>

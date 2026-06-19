@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Activity 2.1: The Two You's</title>
+    <link href="lib/font-3.css" rel="stylesheet">
+    <link href="lib/font-4.css" rel="stylesheet">
+    <script src="lib/tailwind.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        @keyframes claimPulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(220,38,38,0.45); }
+            50%      { box-shadow: 0 0 0 8px rgba(220,38,38,0); }
+        }
+        .claim-pulse { animation: claimPulse 1.4s ease-in-out infinite; }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .fade-up { animation: fadeUp 0.4s ease-out both; }
+    </style>
+</head>
+<body class="min-h-screen" style="background-color: #f5f1e8;">
+    <div id="root"></div>
+    <script src="lib/react.production.min.js"></script>
+    <script src="lib/react-dom.production.min.js"></script>
+    <script src="lib/babel.min.js?v=7"></script>
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        /**
+         * Activity 2.1: The Two You's
+         * CMU METALS / Yale SOM Accounting Prework — Module 2, Activity 1
+         *
+         * @version 0.1
+         * @date 2026-06-18
+         * @description The module trigger. Maria warns that a faulty-repair claim
+         *   reaches the student personally (no legal wall); a policy pays a claim
+         *   but doesn't build the wall — an LLC does. The student discovers that
+         *   the separation they've kept since 1.1 is informal: only their books
+         *   see two; the bank, the customer, and the law see one person. Leaves
+         *   with the felt two-you's (roles/capacity) + the WANT to form an LLC.
+         *   Renders Module-2-Play-Script.md Scene 2.1 (v4). Experience-don't-tell:
+         *   no premium booked, no balance-sheet change; 2.1 names the LLC as the
+         *   proposed wall but does NOT form it or name the shop (that's 2.2).
+         */
+
+        // ============================================================
+        // Color palette (house standard)
+        // ============================================================
+        const colors = {
+            primary: '#00356b',
+            sand: '#f5f1e8',
+            earth: '#8b7355',
+            earthLight: '#d4c4a8',
+            earthDark: '#5c4d3d',
+            accent: '#c9a227',
+            clay: '#c4a574',
+            clayLight: '#e8dcc8',
+            clayDark: '#a08050',
+            success: '#22c55e',
+            successBg: '#f0fdf4',
+            warning: '#f59e0b',
+            warningBg: '#fffbeb',
+            error: '#dc2626',
+            errorBg: '#fef2f2',
+        };
+
+        // ============================================================
+        // Glossary (only terms actually used in 2.1 — no keystone preview)
+        // ============================================================
+        const glossaryTerms = [
+            { term: 'Liability (legal)', definition: 'Being legally responsible for harm. Here it means a claim that can reach your personal savings, car, and earnings — not just the repair work’s tools and parts.' },
+            { term: 'Personal assets', definition: 'What you own as a person — your savings, your car, your earnings (you rent your apartment, so there’s no house at stake) — separate from anything the repair work owns.' },
+            { term: 'LLC', definition: 'Limited Liability Company — a legal form that can hold the operation and stand as a wall between a claim and your personal life. Maria names it here; you form one next.' },
+        ];
+
+        // ============================================================
+        // Sound (Web Audio API)
+        // ============================================================
+        const createAudioContext = () =>
+            new (window.AudioContext || window.webkitAudioContext)();
+
+        const playClick = () => {
+            try {
+                const ctx = createAudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain); gain.connect(ctx.destination);
+                osc.frequency.value = 660; osc.type = 'sine';
+                const t = ctx.currentTime;
+                gain.gain.setValueAtTime(0, t);
+                gain.gain.linearRampToValueAtTime(0.15, t + 0.01);
+                gain.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
+                osc.start(t); osc.stop(t + 0.12);
+                setTimeout(() => ctx.close(), 200);
+            } catch(e) {}
+        };
+
+        const playReveal = () => {
+            try {
+                const ctx = createAudioContext();
+                [523.25, 659.25, 783.99].forEach((freq, i) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain); gain.connect(ctx.destination);
+                    osc.frequency.value = freq; osc.type = 'sine';
+                    const t = ctx.currentTime + i * 0.1;
+                    gain.gain.setValueAtTime(0, t);
+                    gain.gain.linearRampToValueAtTime(0.25, t + 0.02);
+                    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.15);
+                    osc.start(t); osc.stop(t + 0.25);
+                });
+                setTimeout(() => ctx.close(), 600);
+            } catch(e) {}
+        };
+
+        const playThud = () => {
+            try {
+                const ctx = createAudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain); gain.connect(ctx.destination);
+                osc.frequency.value = 150; osc.type = 'sine';
+                const t = ctx.currentTime;
+                gain.gain.setValueAtTime(0, t);
+                gain.gain.linearRampToValueAtTime(0.3, t + 0.02);
+                gain.gain.exponentialRampToValueAtTime(0.01, t + 0.3);
+                osc.start(t); osc.stop(t + 0.35);
+                setTimeout(() => ctx.close(), 450);
+            } catch(e) {}
+        };
+
+        // ============================================================
+        // The recorded repair-work things (M1 carry-forward; illustrative,
+        // dollar-light — no balance-sheet entry is made in 2.1)
+        // ============================================================
+        const businessThings = [
+            'Tools & repair equipment', 'Parts on the shelf', 'Fixtures', 'Laptop', 'Prepaid rent',
+        ];
+        const personalThings = [
+            'Your savings', 'Your car', 'Your earnings',
+        ];
+
+        // ============================================================
+        // "Who sees two?" cards
+        // ============================================================
+        const observers = [
+            {
+                id: 'books', who: 'Your books', sub: 'Bike-Repair.xlsx', sees: 'two',
+                verdict: 'Sees TWO',
+                reason: 'You drew the line yourself — sorting that one co-mingled card by purpose every month, keeping the Things list, running a net. The separation is real. But it’s yours.',
+            },
+            {
+                id: 'bank', who: 'The bank', sub: 'your card & account', sees: 'one',
+                verdict: 'Sees ONE',
+                reason: 'The card and the account are in your personal name. To the bank, every charge — chain lube or groceries — is yours.',
+            },
+            {
+                id: 'customer', who: 'A customer', sub: 'Smith', sees: 'one',
+                verdict: 'Sees ONE',
+                reason: 'Smith hired you. The receipt carries your name, not a separate legal one. There is no “repair work” for Smith to deal with — only you.',
+            },
+            {
+                id: 'law', who: 'The law', sub: 'a court', sees: 'one',
+                verdict: 'Sees ONE',
+                reason: 'In the eyes of the law there is one person here. No document anywhere says the repair work is anything separate from you.',
+            },
+        ];
+
+        const phaseOrder = ['welcome', 'exposure', 'whoSeesTwo', 'twoHats', 'complete'];
+
+        function TutorialApp() {
+            const [phase, setPhase] = useState('welcome');
+            const [showGlossary, setShowGlossary] = useState(false);
+            const [devMode, setDevMode] = useState(false);
+            const [headerClickCount, setHeaderClickCount] = useState(0);
+
+            // exposure: follow-the-claim (0 none, 1 reached business, 2 crossed to personal)
+            const [claimStep, setClaimStep] = useState(0);
+            // whoSeesTwo: which observer cards have been opened
+            const [openedObs, setOpenedObs] = useState([]);
+            // twoHats: the want revealed
+            const [wantRevealed, setWantRevealed] = useState(false);
+
+            const progress = Math.round((phaseOrder.indexOf(phase) / (phaseOrder.length - 1)) * 100);
+
+            const handleHeaderClick = () => {
+                const n = headerClickCount + 1;
+                setHeaderClickCount(n);
+                if (n >= 3) { setDevMode(!devMode); setHeaderClickCount(0); }
+            };
+
+            const goPhase = (p) => { playClick(); setClaimStep(0); setPhase(p); };
+
+            const handleRestart = () => {
+                playClick();
+                setPhase('welcome');
+                setClaimStep(0); setOpenedObs([]); setWantRevealed(false);
+            };
+
+            useEffect(() => {
+                const onKey = (e) => { if (e.key === 'Escape') setShowGlossary(false); };
+                window.addEventListener('keydown', onKey);
+                return () => window.removeEventListener('keydown', onKey);
+            }, []);
+
+            const allObsOpened = observers.every(o => openedObs.includes(o.id));
+
+            // ---------- shared UI ----------
+            const Header = () => (
+                <div className="rounded-lg p-4 mb-5" style={{ backgroundColor: colors.primary }}>
+                    <div className="flex justify-between items-start">
+                        <div onClick={handleHeaderClick} style={{ cursor: 'pointer' }}>
+                            <h1 className="text-lg font-bold text-white">Activity 2.1: The Two You's</h1>
+                            <p className="text-sm mt-1" style={{ color: colors.earthLight }}>
+                                Module 2 · Getting Formal &nbsp;•&nbsp; ~10 min
+                            </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <a href="index.html"
+                                className="p-2 rounded-lg text-white text-xl border-0 bg-transparent cursor-pointer"
+                                title="Contents" aria-label="Back to contents"
+                                style={{ transition: 'background 0.2s', textDecoration: 'none' }}
+                                onMouseOver={(e)=>e.currentTarget.style.background='rgba(255,255,255,0.1)'}
+                                onMouseOut={(e)=>e.currentTarget.style.background='transparent'}>🏠</a>
+                            <button onClick={() => setShowGlossary(true)}
+                                className="p-2 rounded-lg text-white text-xl border-0 bg-transparent cursor-pointer"
+                                title="Glossary" aria-label="Open glossary"
+                                style={{ transition: 'background 0.2s' }}
+                                onMouseOver={(e)=>e.currentTarget.style.background='rgba(255,255,255,0.1)'}
+                                onMouseOut={(e)=>e.currentTarget.style.background='transparent'}>📖</button>
+                            <button onClick={handleRestart}
+                                className="p-2 rounded-lg text-white text-xl border-0 bg-transparent cursor-pointer"
+                                title="Restart" aria-label="Restart activity"
+                                style={{ transition: 'background 0.2s' }}
+                                onMouseOver={(e)=>e.currentTarget.style.background='rgba(255,255,255,0.1)'}
+                                onMouseOut={(e)=>e.currentTarget.style.background='transparent'}>↺</button>
+                        </div>
+                    </div>
+                    <div className="mt-4">
+                        <div className="flex justify-between text-xs mb-1" style={{ color: 'rgba(255,255,255,0.7)' }}>
+                            <span>Progress</span><span>{progress}%</span>
+                        </div>
+                        <div className="h-2 rounded-full" style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}
+                            role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}>
+                            <div className="h-full rounded-full" style={{ width: `${progress}%`, backgroundColor: colors.accent, transition: 'width 0.5s' }} />
+                        </div>
+                    </div>
+                    {devMode && (
+                        <div className="mt-3 pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.2)' }}>
+                            <p className="text-xs mb-2" style={{ color: 'rgba(255,255,255,0.7)' }}>Dev: skip to phase</p>
+                            <div className="flex flex-wrap gap-1">
+                                {phaseOrder.map(p => (
+                                    <button key={p} onClick={() => { setClaimStep(0); setPhase(p); }}
+                                        className="px-2 py-1 rounded text-xs border-0 cursor-pointer"
+                                        style={{ backgroundColor: phase === p ? 'white' : 'rgba(255,255,255,0.2)', color: phase === p ? colors.primary : 'white' }}>
+                                        {p}</button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+
+            const Continue = ({ onClick, children, disabled }) => (
+                <button onClick={onClick} disabled={disabled}
+                    className="px-6 py-3 rounded-lg font-semibold text-white border-0 mt-5"
+                    style={{ backgroundColor: disabled ? colors.earthLight : colors.primary,
+                             cursor: disabled ? 'not-allowed' : 'pointer', transition: 'background 0.2s' }}>
+                    {children || 'Continue →'}
+                </button>
+            );
+
+            const Narrative = ({ children }) => (
+                <div className="rounded-lg p-5 mb-4" style={{ backgroundColor: '#fff', borderLeft: `4px solid ${colors.accent}` }}>
+                    {children}
+                </div>
+            );
+
+            const MariaCard = ({ children }) => (
+                <div className="rounded-lg p-4 mb-4 flex gap-3" style={{ backgroundColor: colors.clayLight, border: `1px solid ${colors.clayDark}` }}>
+                    <div className="flex-shrink-0 rounded-full flex items-center justify-center font-bold text-white"
+                         style={{ width: 38, height: 38, backgroundColor: colors.clayDark }}>M</div>
+                    <div className="text-sm" style={{ color: colors.earthDark }}>
+                        <div className="font-semibold mb-1" style={{ color: colors.clayDark }}>Maria · insurance agent</div>
+                        {children}
+                    </div>
+                </div>
+            );
+
+            const GlossaryModal = () => (
+                <div className="fixed inset-0 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 50 }}
+                     onClick={() => setShowGlossary(false)}>
+                    <div className="rounded-lg p-6 max-w-md w-full" style={{ backgroundColor: '#fff', maxHeight: '80vh', overflowY: 'auto' }}
+                         onClick={(e) => e.stopPropagation()}>
+                        <div className="flex justify-between items-center mb-4">
+                            <h2 className="text-lg font-bold" style={{ color: colors.primary }}>📖 Glossary</h2>
+                            <button onClick={() => setShowGlossary(false)} className="text-2xl border-0 bg-transparent cursor-pointer" style={{ color: colors.earth }} aria-label="Close glossary">✕</button>
+                        </div>
+                        {glossaryTerms.map((t, i) => (
+                            <div key={i} className="mb-3 pb-3" style={{ borderBottom: i < glossaryTerms.length - 1 ? `1px solid ${colors.earthLight}` : 'none' }}>
+                                <div className="font-semibold" style={{ color: colors.earthDark }}>{t.term}</div>
+                                <div className="text-sm mt-1" style={{ color: colors.earth }}>{t.definition}</div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+
+            // ---------- phases ----------
+            const renderWelcome = () => (
+                <div className="fade-up">
+                    <Narrative>
+                        <p className="mb-3" style={{ color: colors.earthDark }}>
+                            The repair work has grown. More gear, more cash through the door, more customers than the month you started.
+                            Your books — <span className="mono font-semibold">Bike-Repair.xlsx</span> — have kept the operation separate
+                            from your personal life since the very first week.
+                        </p>
+                        <p style={{ color: colors.earthDark }}>
+                            Then <strong>Maria</strong>, your insurance agent, calls back — with a question that has nothing to do with
+                            property, and everything to do with where <em>the repair work</em> ends and <em>you</em> begin.
+                        </p>
+                    </Narrative>
+                    <div className="rounded-lg p-5" style={{ backgroundColor: colors.clayLight, border: `1px solid ${colors.clayDark}` }}>
+                        <div className="font-semibold mb-2" style={{ color: colors.clayDark }}>What you'll work out</div>
+                        <ul className="space-y-2 text-sm" style={{ color: colors.earthDark }}>
+                            <li className="flex gap-2 items-start"><span>•</span><span>What Maria is really warning you about — and why a policy alone won't fix it.</span></li>
+                            <li className="flex gap-2 items-start"><span>•</span><span>Who, besides you, actually sees the repair work as separate from your own pocket.</span></li>
+                            <li className="flex gap-2 items-start"><span>•</span><span>What it would take to make that separation more than a habit.</span></li>
+                        </ul>
+                    </div>
+                    <Continue onClick={() => goPhase('exposure')}>Begin →</Continue>
+                </div>
+            );
+
+            const renderExposure = () => (
+                <div className="fade-up">
+                    <MariaCard>
+                        <p className="mb-2">“Your property's well covered. But there's something the property policy never touched — and the
+                            bigger you get, the more it nags at me. <strong>Liability.</strong>”</p>
+                        <p>“Say a bike you repaired fails on the road, and <strong>Smith</strong> — your customer — gets hurt. Smith doesn't sue
+                            ‘the repair work.’ Smith sues <strong>you</strong>.”</p>
+                    </MariaCard>
+
+                    <div className="rounded-lg p-5 mb-4" style={{ backgroundColor: '#fff', border: `1px solid ${colors.earthLight}` }}>
+                        <p className="text-sm mb-4" style={{ color: colors.earth }}>
+                            A claim from Smith is coming. <strong style={{ color: colors.earthDark }}>Where can it reach?</strong>
+                        </p>
+
+                        <div className="grid grid-cols-2 gap-3">
+                            {/* The repair work */}
+                            <div className="rounded-lg p-3" style={{
+                                backgroundColor: claimStep >= 1 ? colors.errorBg : '#faf8f3',
+                                border: `2px solid ${claimStep >= 1 ? colors.error : colors.earthLight}`, transition: 'all 0.4s' }}>
+                                <div className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: colors.earth }}>The repair work</div>
+                                {businessThings.map((t, i) => (
+                                    <div key={i} className="text-sm py-0.5" style={{ color: colors.earthDark }}>{t}</div>
+                                ))}
+                            </div>
+                            {/* You */}
+                            <div className="rounded-lg p-3" style={{
+                                backgroundColor: claimStep >= 2 ? colors.errorBg : '#faf8f3',
+                                border: `2px solid ${claimStep >= 2 ? colors.error : colors.earthLight}`, transition: 'all 0.4s' }}>
+                                <div className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: colors.earth }}>You <span className="normal-case font-normal">(not on any books)</span></div>
+                                {personalThings.map((t, i) => (
+                                    <div key={i} className="text-sm py-0.5" style={{ color: colors.earthDark }}>{t}</div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* the wall line */}
+                        <div className="text-center my-3" style={{ height: 20 }}>
+                            {claimStep >= 2 && (
+                                <span className="text-xs font-semibold fade-up" style={{ color: colors.error }}>
+                                    ✕ no legal wall here — the claim crosses straight through
+                                </span>
+                            )}
+                        </div>
+
+                        {claimStep < 2 ? (
+                            <button onClick={() => { if (claimStep === 0) { playThud(); setClaimStep(1); } else { playThud(); setClaimStep(2); } }}
+                                className={"px-5 py-2.5 rounded-lg font-semibold text-white border-0 " + (claimStep === 0 ? 'claim-pulse' : '')}
+                                style={{ backgroundColor: colors.error, cursor: 'pointer' }}>
+                                {claimStep === 0 ? "Follow Smith's claim →" : 'Keep following →'}
+                            </button>
+                        ) : (
+                            <div className="fade-up">
+                                <MariaCard>
+                                    <p className="mb-2">“See it? It doesn't stop at the workbench. With nothing in the way, it comes straight through
+                                        — your savings, your car, even your <strong>earnings</strong>.”</p>
+                                    <p>“I can sell you liability coverage — and you should carry it. But a policy <em>pays a claim</em>; it doesn't
+                                        <strong> build a wall</strong>. If you want the repair work to stand on its own — so a claim stops there — that's a
+                                        different thing entirely. It's called an <strong>LLC</strong>.”</p>
+                                </MariaCard>
+                                <Continue onClick={() => goPhase('whoSeesTwo')}>That stopped me →</Continue>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+
+            const renderWhoSeesTwo = () => (
+                <div className="fade-up">
+                    <Narrative>
+                        <p style={{ color: colors.earthDark }}>
+                            That stopped you — because in <em>your</em> books, the repair work and your personal life are clearly two different
+                            things. You've kept them apart since day one: sorting that one co-mingled card by purpose every month, keeping a
+                            separate list, running a net. On paper, there are two of you. <strong>So why could Smith's claim cross over?</strong>
+                        </p>
+                    </Narrative>
+
+                    <p className="text-sm mb-3" style={{ color: colors.earth }}>
+                        Tap each one. <strong style={{ color: colors.earthDark }}>Who treats the repair work as separate from you?</strong>
+                    </p>
+
+                    <div className="grid grid-cols-2 gap-3">
+                        {observers.map(o => {
+                            const opened = openedObs.includes(o.id);
+                            const two = o.sees === 'two';
+                            return (
+                                <div key={o.id} onClick={() => {
+                                        if (!opened) { two ? playReveal() : playThud(); setOpenedObs(prev => [...prev, o.id]); }
+                                    }}
+                                    className="rounded-lg p-3"
+                                    style={{ cursor: opened ? 'default' : 'pointer',
+                                             backgroundColor: opened ? (two ? colors.successBg : '#fff') : '#fff',
+                                             border: `2px solid ${opened ? (two ? colors.success : colors.earthLight) : colors.clayDark}`,
+                                             transition: 'all 0.3s' }}>
+                                    <div className="flex justify-between items-baseline">
+                                        <div>
+                                            <div className="font-semibold" style={{ color: colors.earthDark }}>{o.who}</div>
+                                            <div className="text-xs" style={{ color: colors.earth }}>{o.sub}</div>
+                                        </div>
+                                        {opened && (
+                                            <span className="text-xs font-bold px-2 py-0.5 rounded fade-up"
+                                                  style={{ color: '#fff', backgroundColor: two ? colors.success : colors.earth }}>
+                                                {o.verdict}
+                                            </span>
+                                        )}
+                                    </div>
+                                    {opened ? (
+                                        <p className="text-xs mt-2 fade-up" style={{ color: colors.earth }}>{o.reason}</p>
+                                    ) : (
+                                        <p className="text-xs mt-2" style={{ color: colors.clayDark }}>tap to find out →</p>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    {allObsOpened && (
+                        <div className="fade-up mt-4">
+                            <div className="rounded-lg p-5" style={{ backgroundColor: colors.warningBg, border: `1px solid ${colors.warning}` }}>
+                                <p style={{ color: '#92400e' }}>
+                                    Only <strong>your books</strong> see two. The bank, the customer, and the law all see <strong>one person</strong>.
+                                    The line you drew is real — but it's <strong>informal</strong>. You keep it by hand, and it has <strong>no legal force</strong>.
+                                    That's why the claim crossed straight over.
+                                </p>
+                            </div>
+                            <Continue onClick={() => goPhase('twoHats')}>So what's missing? →</Continue>
+                        </div>
+                    )}
+                </div>
+            );
+
+            const renderTwoHats = () => (
+                <div className="fade-up">
+                    <Narrative>
+                        <p className="mb-3" style={{ color: colors.earthDark }}>
+                            So there have been <strong>two of you</strong> all along — but only in a way you've kept by hand. The <strong>person</strong>,
+                            and the <strong>operation</strong>. Same head, two hats.
+                        </p>
+                        <p style={{ color: colors.earthDark }}>
+                            Your books drew one line. What would it take for the bank, the customer, and the law to see two — the way your books do?
+                        </p>
+                    </Narrative>
+
+                    {!wantRevealed ? (
+                        <button onClick={() => { playReveal(); setWantRevealed(true); }}
+                            className="px-5 py-2.5 rounded-lg font-semibold text-white border-0"
+                            style={{ backgroundColor: colors.primary, cursor: 'pointer' }}>
+                            Reveal →
+                        </button>
+                    ) : (
+                        <div className="fade-up">
+                            <div className="rounded-lg p-5" style={{ backgroundColor: colors.clayLight, border: `1px solid ${colors.clayDark}` }}>
+                                <p style={{ color: colors.earthDark }}>
+                                    The separation you've kept on paper needs a <strong>second line beside it — a legal one</strong>. A line the bank, the
+                                    customer, and the law are bound to honor. Maria already named it: an <strong>LLC</strong>. Next, you'll go make it real.
+                                </p>
+                            </div>
+                            <Continue onClick={() => goPhase('complete')}>Finish up →</Continue>
+                        </div>
+                    )}
+                </div>
+            );
+
+            const renderComplete = () => (
+                <div className="fade-up">
+                    <div className="text-center mb-5">
+                        <div className="text-5xl mb-2">🧩</div>
+                        <h2 className="text-xl font-bold" style={{ color: colors.primary }}>The line you drew isn't the only line</h2>
+                    </div>
+
+                    <div className="rounded-lg p-5 mb-4" style={{ backgroundColor: '#fff', border: `1px solid ${colors.earthLight}` }}>
+                        <div className="font-semibold mb-3" style={{ color: colors.earthDark }}>What you worked out</div>
+                        <ul className="space-y-2 text-sm">
+                            {[
+                                'The separation you’ve kept in your books since 1.1 is real — but informal, with no legal force.',
+                                'To you it’s two things; to the bank, the customer, and the law, it’s one person.',
+                                'A liability policy pays a claim. It does not build a wall between the repair work and your personal life.',
+                                'That wall is a different kind of line — a legal one — and it has a name: an LLC.',
+                            ].map((t, i) => (
+                                <li key={i} className="flex gap-2 items-start" style={{ color: colors.earthDark }}>
+                                    <span style={{ color: colors.success }}>✓</span><span>{t}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+
+                    <div className="rounded-lg p-5 mb-4" style={{ backgroundColor: colors.warningBg, borderLeft: `4px solid ${colors.accent}` }}>
+                        <div className="font-semibold mb-1" style={{ color: '#92400e' }}>💡 The deeper point</div>
+                        <p className="text-sm" style={{ color: '#92400e' }}>
+                            You've been keeping two you's apart by hand. What you don't have yet is a <strong>second line — a legal one</strong> — beside
+                            the line you drew in your books back in 1.1. They're two different lines, drawn for two different reasons. Next, you'll
+                            draw the legal one.
+                        </p>
+                    </div>
+
+                    <div className="rounded-lg p-5 mb-5" style={{ backgroundColor: colors.clayLight, border: `1px solid ${colors.clayDark}` }}>
+                        <div className="text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: colors.clayDark }}>Coming next</div>
+                        <div className="font-semibold" style={{ color: colors.earthDark }}>2.2 — Filing for a Legal Body</div>
+                        <p className="text-sm mt-1" style={{ color: colors.earth }}>
+                            Anna's formed an LLC before. She'll walk you through filing the one piece of paper that brings a legal body into existence.
+                        </p>
+                    </div>
+
+                    <div className="flex gap-3">
+                        <a href="22-filing-for-a-legal-body.html"
+                           className="px-6 py-3 rounded-lg font-semibold text-white no-underline inline-block"
+                           style={{ backgroundColor: colors.primary }}>Next: 2.2 →</a>
+                        <button onClick={handleRestart}
+                            className="px-6 py-3 rounded-lg font-semibold border-0"
+                            style={{ backgroundColor: 'transparent', color: colors.primary, border: `2px solid ${colors.primary}`, cursor: 'pointer' }}>
+                            ↺ Restart
+                        </button>
+                    </div>
+                </div>
+            );
+
+            const renderPhase = () => {
+                if (phase === 'welcome') return renderWelcome();
+                if (phase === 'exposure') return renderExposure();
+                if (phase === 'whoSeesTwo') return renderWhoSeesTwo();
+                if (phase === 'twoHats') return renderTwoHats();
+                if (phase === 'complete') return renderComplete();
+                return null;
+            };
+
+            return (
+                <div className="min-h-screen py-6 px-4" style={{ backgroundColor: colors.sand }}>
+                    <div className="max-w-2xl mx-auto">
+                        <Header />
+                        {renderPhase()}
+                    </div>
+                    {showGlossary && <GlossaryModal />}
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<TutorialApp />);
+    </script>
+</body>
+</html>

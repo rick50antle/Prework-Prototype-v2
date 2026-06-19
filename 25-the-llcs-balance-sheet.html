@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Activity 2.5: The LLC's Balance Sheet</title>
+    <link href="lib/font-3.css" rel="stylesheet">
+    <link href="lib/font-4.css" rel="stylesheet">
+    <script src="lib/tailwind.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-up { animation: fadeUp 0.4s ease-out both; }
+    </style>
+</head>
+<body class="min-h-screen" style="background-color: #f5f1e8;">
+    <div id="root"></div>
+    <script src="lib/react.production.min.js"></script>
+    <script src="lib/react-dom.production.min.js"></script>
+    <script src="lib/babel.min.js?v=7"></script>
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        /**
+         * Activity 2.5: The LLC's Balance Sheet (capstone — module close)
+         * CMU METALS / Yale SOM Accounting Prework — Module 2, Activity 5
+         *
+         * @version 0.1
+         * @date 2026-06-18
+         * @description The module close. Lay out the formed LLC's opening balance sheet
+         *   and hold it against M1's ending sheet. The legal formation (filing, signing,
+         *   EIN, card-move) changed NOTHING on the books; the ONLY difference is the $500
+         *   working capital the member put in at 2.4 (Cash 0->500; members' capital
+         *   1,790->2,290). Legal form != economic substance; the accounting entity (since
+         *   1.1) predates the legal one. Closes on A 3,910 - L 1,450 = 2,460. Bridges to
+         *   M3 (angel investor / second location) WITHOUT revealing the skill omission.
+         *   Renders Module-2-Play-Script.md Scene 2.5 (v4) + Rick's $500 (2026-06-18).
+         */
+
+        const colors = {
+            primary: '#00356b', sand: '#f5f1e8', earth: '#8b7355', earthLight: '#d4c4a8',
+            earthDark: '#5c4d3d', accent: '#c9a227', clay: '#c4a574', clayLight: '#e8dcc8',
+            clayDark: '#a08050', success: '#22c55e', successBg: '#f0fdf4', warning: '#f59e0b',
+            warningBg: '#fffbeb', error: '#dc2626', errorBg: '#fef2f2',
+        };
+
+        const glossaryTerms = [
+            { term: 'Balance sheet', definition: 'A snapshot of what the entity holds and owes at one moment: Assets − Liabilities = the residual (here, members’ equity).' },
+            { term: 'Members’ equity', definition: 'The LLC’s residual, A − L. A definitional difference — never “what’s left for the owner.” Split into contributed ($2,290) and retained ($170).' },
+            { term: 'Accounting entity', definition: 'The boundary your books are drawn around. It can exist with or without a legal body — and here it has existed since 1.1, long before the LLC.' },
+            { term: 'Legal entity', definition: 'A creature of statute — the LLC. Days old. Distinct from the accounting entity it now wraps.' },
+        ];
+
+        const createAudioContext = () => new (window.AudioContext || window.webkitAudioContext)();
+        const playClick = () => { try { const c=createAudioContext(),o=c.createOscillator(),g=c.createGain(); o.connect(g);g.connect(c.destination); o.frequency.value=660;o.type='sine'; const t=c.currentTime; g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(0.15,t+0.01);g.gain.exponentialRampToValueAtTime(0.01,t+0.1); o.start(t);o.stop(t+0.12); setTimeout(()=>c.close(),200);}catch(e){} };
+        const playReveal = () => { try { const c=createAudioContext(); [523.25,659.25,783.99].forEach((f,i)=>{const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=f;o.type='sine';const t=c.currentTime+i*0.1;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(0.25,t+0.02);g.gain.exponentialRampToValueAtTime(0.01,t+0.15);o.start(t);o.stop(t+0.25);}); setTimeout(()=>c.close(),600);}catch(e){} };
+
+        const phaseOrder = ['welcome', 'capstone', 'complete'];
+
+        // [label, m1, llc]  — diff iff m1 !== llc
+        const assetRows = [['Cash','0','500'],['Prepaid rent','650','650'],['Parts on the shelf','200','200'],['Tools & equipment','1,200','1,200'],['Fixtures','750','750'],['Laptop','610','610']];
+
+        function TutorialApp() {
+            const [phase, setPhase] = useState('welcome');
+            const [showGlossary, setShowGlossary] = useState(false);
+            const [devMode, setDevMode] = useState(false);
+            const [headerClickCount, setHeaderClickCount] = useState(0);
+            const [memberName, setMemberName] = useState('');
+            const [opened, setOpened] = useState(false);
+            const [compared, setCompared] = useState(false);
+
+            useEffect(() => {
+                try { const n = localStorage.getItem('m2Member'); if (n) setMemberName(n); } catch (e) {}
+                const onKey = (e) => { if (e.key === 'Escape') setShowGlossary(false); };
+                window.addEventListener('keydown', onKey);
+                return () => window.removeEventListener('keydown', onKey);
+            }, []);
+
+            const displayName = (memberName.trim() || '[Your Name]');
+            const entityName = displayName + "’s Bike Repairs, LLC";
+            const progress = Math.round((phaseOrder.indexOf(phase) / (phaseOrder.length - 1)) * 100);
+
+            const handleHeaderClick = () => { const n = headerClickCount + 1; setHeaderClickCount(n); if (n >= 3) { setDevMode(!devMode); setHeaderClickCount(0); } };
+            const goPhase = (p) => { playClick(); setPhase(p); };
+            const handleRestart = () => { playClick(); setPhase('welcome'); setOpened(false); setCompared(false); };
+
+            const Header = () => (
+                <div className="rounded-lg p-4 mb-5" style={{ backgroundColor: colors.primary }}>
+                    <div className="flex justify-between items-start">
+                        <div onClick={handleHeaderClick} style={{ cursor: 'pointer' }}>
+                            <h1 className="text-lg font-bold text-white">Activity 2.5: The LLC's Balance Sheet</h1>
+                            <p className="text-sm mt-1" style={{ color: colors.earthLight }}>Module 2 · Getting Formal &nbsp;•&nbsp; ~8 min</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <a href="index.html" className="p-2 rounded-lg text-white text-xl cursor-pointer" title="Contents" aria-label="Back to contents" style={{ textDecoration: 'none', transition: 'background 0.2s' }} onMouseOver={(e)=>e.currentTarget.style.background='rgba(255,255,255,0.1)'} onMouseOut={(e)=>e.currentTarget.style.background='transparent'}>🏠</a>
+                            <button onClick={() => setShowGlossary(true)} className="p-2 rounded-lg text-white text-xl border-0 bg-transparent cursor-pointer" title="Glossary" aria-label="Open glossary" style={{ transition: 'background 0.2s' }} onMouseOver={(e)=>e.currentTarget.style.background='rgba(255,255,255,0.1)'} onMouseOut={(e)=>e.currentTarget.style.background='transparent'}>📖</button>
+                            <button onClick={handleRestart} className="p-2 rounded-lg text-white text-xl border-0 bg-transparent cursor-pointer" title="Restart" aria-label="Restart activity" style={{ transition: 'background 0.2s' }} onMouseOver={(e)=>e.currentTarget.style.background='rgba(255,255,255,0.1)'} onMouseOut={(e)=>e.currentTarget.style.background='transparent'}>↺</button>
+                        </div>
+                    </div>
+                    <div className="mt-4">
+                        <div className="flex justify-between text-xs mb-1" style={{ color: 'rgba(255,255,255,0.7)' }}><span>Progress</span><span>{progress}%</span></div>
+                        <div className="h-2 rounded-full" style={{ backgroundColor: 'rgba(255,255,255,0.2)' }} role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}>
+                            <div className="h-full rounded-full" style={{ width: `${progress}%`, backgroundColor: colors.accent, transition: 'width 0.5s' }} />
+                        </div>
+                    </div>
+                    {devMode && (
+                        <div className="mt-3 pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.2)' }}>
+                            <p className="text-xs mb-2" style={{ color: 'rgba(255,255,255,0.7)' }}>Dev: skip to phase</p>
+                            <div className="flex flex-wrap gap-1">
+                                {phaseOrder.map(p => (<button key={p} onClick={() => setPhase(p)} className="px-2 py-1 rounded text-xs border-0 cursor-pointer" style={{ backgroundColor: phase === p ? 'white' : 'rgba(255,255,255,0.2)', color: phase === p ? colors.primary : 'white' }}>{p}</button>))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+
+            const Continue = ({ onClick, children }) => (
+                <button onClick={onClick} className="px-6 py-3 rounded-lg font-semibold text-white border-0 mt-5" style={{ backgroundColor: colors.primary, cursor: 'pointer', transition: 'background 0.2s' }}>{children || 'Continue →'}</button>
+            );
+            const Narrative = ({ children }) => (<div className="rounded-lg p-5 mb-4" style={{ backgroundColor: '#fff', borderLeft: `4px solid ${colors.accent}` }}>{children}</div>);
+            const GlossaryModal = () => (
+                <div className="fixed inset-0 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 50 }} onClick={() => setShowGlossary(false)}>
+                    <div className="rounded-lg p-6 max-w-md w-full" style={{ backgroundColor: '#fff', maxHeight: '80vh', overflowY: 'auto' }} onClick={(e) => e.stopPropagation()}>
+                        <div className="flex justify-between items-center mb-4"><h2 className="text-lg font-bold" style={{ color: colors.primary }}>📖 Glossary</h2><button onClick={() => setShowGlossary(false)} className="text-2xl border-0 bg-transparent cursor-pointer" style={{ color: colors.earth }} aria-label="Close glossary">✕</button></div>
+                        {glossaryTerms.map((t, i) => (<div key={i} className="mb-3 pb-3" style={{ borderBottom: i < glossaryTerms.length - 1 ? `1px solid ${colors.earthLight}` : 'none' }}><div className="font-semibold" style={{ color: colors.earthDark }}>{t.term}</div><div className="text-sm mt-1" style={{ color: colors.earth }}>{t.definition}</div></div>))}
+                    </div>
+                </div>
+            );
+
+            // A balance-sheet row; in compare mode show the M1 column and highlight diffs
+            const Row = ({ label, m1, llc, bold, rule }) => {
+                const diff = m1 !== llc;
+                return (
+                    <div className="flex text-sm" style={{ padding: '2px 0', borderTop: rule ? `2px solid ${colors.earthDark}` : 'none', fontWeight: bold ? 700 : 400, backgroundColor: compared && diff ? colors.warningBg : 'transparent' }}>
+                        <span style={{ flex: 1, color: colors.earthDark }}>{label}</span>
+                        {compared && <span className="mono" style={{ width: 70, textAlign: 'right', color: diff ? colors.earth : colors.earthLight }}>{m1}</span>}
+                        <span className="mono" style={{ width: 70, textAlign: 'right', color: compared && diff ? colors.clayDark : colors.earthDark, fontWeight: compared && diff ? 700 : (bold ? 700 : 400) }}>{llc}</span>
+                    </div>
+                );
+            };
+
+            const BalanceSheet = () => (
+                <div className="rounded-lg p-5" style={{ backgroundColor: '#fff', border: `1px solid ${colors.earthLight}` }}>
+                    <div className="text-center text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: colors.primary }}>{entityName}</div>
+                    <div className="text-center text-xs mb-3" style={{ color: colors.earth }}>Opening balance sheet · June 1, 2026</div>
+                    <div className="flex text-xs uppercase tracking-wide mb-1" style={{ color: colors.earth }}>
+                        <span style={{ flex: 1 }}> </span>
+                        {compared && <span style={{ width: 70, textAlign: 'right' }}>M1 end</span>}
+                        <span style={{ width: 70, textAlign: 'right' }}>{compared ? 'LLC' : ''}</span>
+                    </div>
+                    <div className="text-xs font-semibold uppercase mb-1" style={{ color: colors.earth }}>Assets</div>
+                    {assetRows.map(([k, m1, llc]) => <Row key={k} label={k} m1={m1} llc={llc} />)}
+                    <Row label="Assets" m1="3,410" llc="3,910" bold rule />
+                    <div className="text-xs font-semibold uppercase mb-1 mt-3" style={{ color: colors.earth }}>Liabilities</div>
+                    <Row label="Credit card (business)" m1="1,230" llc="1,230" />
+                    <Row label="Customer advance — Smith" m1="220" llc="220" />
+                    <Row label="Liabilities" m1="1,450" llc="1,450" bold rule />
+                    <div className="text-xs font-semibold uppercase mb-1 mt-3" style={{ color: colors.earth }}>Members' equity</div>
+                    <Row label="Members' capital — contributed" m1="1,790" llc="2,290" />
+                    <Row label="Retained earnings" m1="170" llc="170" />
+                    <Row label="Members' equity (A − L)" m1="1,960" llc="2,460" bold rule />
+                </div>
+            );
+
+            const renderWelcome = () => (
+                <div className="fade-up">
+                    <Narrative>
+                        <p className="mb-3" style={{ color: colors.earthDark }}>It's done. <strong>{entityName}</strong> is named, lawful, holds its own EIN, and runs its own bank account and card. Four documents, a handful of signatures — and a legal body now wraps the repair work.</p>
+                        <p style={{ color: colors.earthDark }}>So open the entity's books and lay out its very first <strong>balance sheet</strong>. Then we'll do one thing: hold it against the sheet you ended Module 1 with.</p>
+                    </Narrative>
+                    <Continue onClick={() => goPhase('capstone')}>Open the books →</Continue>
+                </div>
+            );
+
+            const renderCapstone = () => (
+                <div className="fade-up">
+                    {!opened ? (
+                        <div className="text-center py-8">
+                            <p className="text-sm mb-4" style={{ color: colors.earth }}>The books for {entityName} are ready to open.</p>
+                            <button onClick={() => { playReveal(); setOpened(true); }} className="px-6 py-3 rounded-lg font-semibold text-white border-0" style={{ backgroundColor: colors.primary, cursor: 'pointer' }}>Lay out the balance sheet →</button>
+                        </div>
+                    ) : (
+                        <div className="fade-up">
+                            <BalanceSheet />
+                            {!compared ? (
+                                <div className="fade-up">
+                                    <p className="text-sm mt-4 mb-1" style={{ color: colors.earthDark }}>There it is — the LLC's own sheet: <span className="mono">A 3,910 − L 1,450 = 2,460</span>. Now the real question:</p>
+                                    <p className="text-sm font-semibold mb-1" style={{ color: colors.primary }}>How much of this did <em>forming the LLC</em> actually change?</p>
+                                    <button onClick={() => { playReveal(); setCompared(true); }} className="px-5 py-2.5 rounded-lg font-semibold text-white border-0 mt-2" style={{ backgroundColor: colors.primary, cursor: 'pointer' }}>Hold it against your Module 1 sheet →</button>
+                                </div>
+                            ) : (
+                                <div className="fade-up">
+                                    <div className="rounded-lg p-5 mt-4 mb-4" style={{ backgroundColor: colors.warningBg, border: `1px solid ${colors.warning}` }}>
+                                        <p style={{ color: '#92400e' }}>Look what moved. <strong>Two lines</strong> — Cash (<span className="mono">0 → 500</span>) and members' capital — contributed (<span className="mono">1,790 → 2,290</span>). Both by your <strong>$500</strong>. <strong>Everything else is identical.</strong></p>
+                                        <p className="mt-2" style={{ color: '#92400e' }}>Filing the certificate, signing the agreement, contributing the business, getting the EIN, moving the card — the entire legal formation changed the recorded economics by <strong>exactly nothing</strong>. The one thing that moved your balance sheet was a decision <em>you</em> made: putting in $500. <strong>Legal form is not economic substance.</strong></p>
+                                    </div>
+                                    <div className="rounded-lg p-5" style={{ backgroundColor: colors.primary }}>
+                                        <div className="text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: colors.accent }}>The keystone, settled</div>
+                                        <p className="text-white text-base font-bold mb-2">The accounting entity has been here since 1.1. The legal one is days old.</p>
+                                        <p className="text-sm" style={{ color: colors.earthLight }}>This sheet describes a boundary you drew <em>for information</em> back in Module 1 — years, in a real firm, before any legal body existed. The LLC is a wrapper around it. <strong>Accounting-entity ≠ legal-entity</strong>, made concrete: the wrapper changed who can be pursued and whose name is on the account — not what the records show.</p>
+                                    </div>
+                                    <Continue onClick={() => goPhase('complete')}>Finish Module 2 →</Continue>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+            );
+
+            const renderComplete = () => (
+                <div className="fade-up">
+                    <div className="text-center mb-5"><div className="text-5xl mb-2">🏁</div><h2 className="text-xl font-bold" style={{ color: colors.primary }}>Module 2 complete — the entity is formal</h2></div>
+                    <div className="rounded-lg p-5 mb-4" style={{ backgroundColor: '#fff', border: `1px solid ${colors.earthLight}` }}>
+                        <div className="font-semibold mb-3" style={{ color: colors.earthDark }}>What you built across Module 2</div>
+                        <ul className="space-y-2 text-sm">
+                            {[
+                                'You felt the gap: the line you kept in your books had no legal teeth (2.1).',
+                                'You gave it a legal body — a CT Certificate of Organization (2.2).',
+                                'You wrote and signed the Operating Agreement, contributed the business, and named the keystone (2.3).',
+                                'You gave the entity its own number, account, and card — ending the co-mingling (2.4).',
+                                'And you laid out its balance sheet: forming the LLC changed nothing; your $500 was the only real move (2.5).',
+                            ].map((t, i) => (<li key={i} className="flex gap-2 items-start" style={{ color: colors.earthDark }}><span style={{ color: colors.success }}>✓</span><span>{t}</span></li>))}
+                        </ul>
+                    </div>
+                    <div className="rounded-lg p-5 mb-4" style={{ backgroundColor: colors.warningBg, borderLeft: `4px solid ${colors.accent}` }}>
+                        <div className="font-semibold mb-1" style={{ color: '#92400e' }}>💡 The one idea to keep</div>
+                        <p className="text-sm" style={{ color: '#92400e' }}>The accounting boundary and the legal boundary are <strong>different lines, drawn for different reasons</strong>. The same machine runs all the way up: a giant company draws <strong>one</strong> accounting boundary around <strong>dozens</strong> of separate legal companies. Yours is one accounting entity that simply <strong>predates</strong> its single legal one.</p>
+                    </div>
+                    <div className="rounded-lg p-5 mb-5" style={{ backgroundColor: colors.clayLight, border: `1px solid ${colors.clayDark}` }}>
+                        <div className="text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: colors.clayDark }}>Coming next — Module 3</div>
+                        <div className="font-semibold" style={{ color: colors.earthDark }}>Someone wants in</div>
+                        <p className="text-sm mt-1" style={{ color: colors.earth }}>An investor has been watching what you've built, and floats an idea: a <strong>second location</strong>. To put money in, they have to put a <strong>number</strong> on the whole business. That's where Module 3 begins.</p>
+                    </div>
+                    <div className="flex gap-3">
+                        <a href="index.html" className="px-6 py-3 rounded-lg font-semibold text-white no-underline inline-block" style={{ backgroundColor: colors.primary }}>↩ Back to contents</a>
+                        <button onClick={handleRestart} className="px-6 py-3 rounded-lg font-semibold border-0" style={{ backgroundColor: 'transparent', color: colors.primary, border: `2px solid ${colors.primary}`, cursor: 'pointer' }}>↺ Restart</button>
+                    </div>
+                </div>
+            );
+
+            const renderPhase = () => {
+                if (phase === 'welcome') return renderWelcome();
+                if (phase === 'capstone') return renderCapstone();
+                if (phase === 'complete') return renderComplete();
+                return null;
+            };
+
+            return (
+                <div className="min-h-screen py-6 px-4" style={{ backgroundColor: colors.sand }}>
+                    <div className="max-w-2xl mx-auto"><Header />{renderPhase()}</div>
+                    {showGlossary && <GlossaryModal />}
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<TutorialApp />);
+    </script>
+</body>
+</html>
