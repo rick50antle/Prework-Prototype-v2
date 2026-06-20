@@ -52,9 +52,9 @@
         const glossaryTerms = [
             { term: 'EIN', definition: 'Employer Identification Number — the entity’s own tax ID with the IRS, like a Social Security number for a business. The bank needs it to open an account in the LLC’s name.' },
             { term: 'Co-mingling', definition: 'Running business and personal money through the same account, so they have to be sorted apart by hand. Opening the LLC’s own account ends it.' },
-            { term: 'Capital contribution', definition: 'Money (or property) an owner puts into the company. Your $500 of working capital is one: it raises the LLC’s cash and its members’ capital by $500.' },
-            { term: 'Working capital', definition: 'Cash on hand to run day-to-day operations. The LLC starts with none, so you seed its account with $500 of your own.' },
+            { term: 'Capital contribution', definition: 'Money (or property) an owner puts into the company. Your $500 in cash is one: it raises the LLC’s cash and its members’ capital by $500.' },
             { term: 'Disregarded entity', definition: 'For federal income tax, a single-member LLC is “looked through” to its owner — even though it holds its own EIN for every other purpose. Different lines drawn for different purposes.' },
+            { term: 'Counterparty', definition: 'The other party to a transaction or contract. With its own EIN and accounts, the LLC is a counterparty in its own right — it deals with banks, customers, and the IRS in its own name, and can owe and be owed (even sue and be sued) as itself, not as you.' },
         ];
 
         const createAudioContext = () => new (window.AudioContext || window.webkitAudioContext)();
@@ -63,7 +63,7 @@
         const playStamp = () => { try { const c=createAudioContext(),o=c.createOscillator(),g=c.createGain(); o.connect(g);g.connect(c.destination); o.frequency.value=180;o.type='triangle'; const t=c.currentTime; g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(0.35,t+0.01);g.gain.exponentialRampToValueAtTime(0.01,t+0.25); o.start(t);o.stop(t+0.3); setTimeout(()=>c.close(),400);}catch(e){} };
         const playMove = () => { try { const c=createAudioContext(),o=c.createOscillator(),g=c.createGain(); o.connect(g);g.connect(c.destination); o.frequency.value=440;o.type='sine'; o.frequency.linearRampToValueAtTime(680, c.currentTime+0.18); const t=c.currentTime; g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(0.18,t+0.02);g.gain.exponentialRampToValueAtTime(0.01,t+0.2); o.start(t);o.stop(t+0.22); setTimeout(()=>c.close(),300);}catch(e){} };
 
-        const phaseOrder = ['welcome', 'ein', 'account', 'complete'];
+        const phaseOrder = ['welcome', 'ein', 'account', 'statements', 'complete'];
 
         function TutorialApp() {
             const [phase, setPhase] = useState('welcome');
@@ -211,7 +211,7 @@
 
             const renderAccount = () => {
                 const nextLabel = step === 0 ? 'Open the LLC’s bank account →'
-                    : step === 1 ? 'Move in $500 of working capital →'
+                    : step === 1 ? 'Move $500 in cash into the account →'
                     : step === 2 ? 'Move the business card to the LLC →' : null;
                 const advance = () => { step === 1 ? playMove() : (step === 2 ? playMove() : playReveal()); setStep(step + 1); };
                 return (
@@ -234,19 +234,19 @@
                             </div>
                         </div>
 
-                        {step === 2 && <div className="text-xs text-center mb-2 fade-up" style={{ color: colors.primary }}>↑ your <strong>$500 working-capital contribution</strong> — Cash 0 → 500, members' capital +500</div>}
+                        {step === 2 && <div className="text-xs text-center mb-2 fade-up" style={{ color: colors.primary }}>↑ your <strong>$500 cash contribution</strong> — Cash 0 → 500, members' capital +500</div>}
 
                         {nextLabel ? (
                             <button onClick={advance} className="px-5 py-2.5 rounded-lg font-semibold text-white border-0" style={{ backgroundColor: colors.primary, cursor: 'pointer' }}>{nextLabel}</button>
                         ) : (
                             <div className="fade-up">
                                 <div className="rounded-lg p-5 mb-3" style={{ backgroundColor: colors.successBg, border: `1px solid ${colors.success}` }}>
-                                    <p style={{ color: '#166534' }}><strong>Co-mingling ended.</strong> The LLC has its own account and card; your personal checking is personal again. The by-hand sorting you've done since 1.1 is now <strong>institutional</strong> — banks, the IRS, and customers all deal with the LLC. <span style={{ fontWeight: 600 }}>(Open 📄 up top for the new statements — the LLC's, and your personal accounts after the split.)</span></p>
+                                    <p style={{ color: '#166534' }}><strong>Co-mingling ended.</strong> The LLC has its own account and card; your personal checking is personal again. The by-hand sorting you've done since 1.1 is now <strong>institutional</strong> — banks, the IRS, and customers all deal with the LLC. <span style={{ fontWeight: 600 }}>The statements are next.</span></p>
                                 </div>
                                 <div className="rounded-lg p-4" style={{ backgroundColor: colors.warningBg, border: `1px solid ${colors.warning}` }}>
                                     <p className="text-sm" style={{ color: '#92400e' }}>Two of those moves changed <em>nothing</em> on the books — the EIN, and the card sliding to the LLC's name (<span className="mono">$1,230</span> stays <span className="mono">$1,230</span>). The <strong>one real change</strong> was your <strong>$500</strong>: a capital contribution. Cash <span className="mono">0 → 500</span>; members' capital <span className="mono">1,790 → 2,290</span>. You'll lay out the full sheet next.</p>
                                 </div>
-                                <Continue onClick={() => goPhase('complete')}>Finish up →</Continue>
+                                <Continue onClick={() => goPhase('statements')}>See the statements →</Continue>
                             </div>
                         )}
                     </div>
@@ -287,6 +287,7 @@
                 if (phase === 'welcome') return renderWelcome();
                 if (phase === 'ein') return renderEin();
                 if (phase === 'account') return renderAccount();
+                if (phase === 'statements') return renderStatements();
                 if (phase === 'complete') return renderComplete();
                 return null;
             };
@@ -341,6 +342,33 @@
                 if (id === 'percard') return <Stmt heading="Personal card — after the split" bank="Harborline Visa" who={['Personal card · •••• 3902']} box={['Period: June 1–30, 2026', 'Previous: $1,460.00', 'New balance: $230.00']} head={['Date', 'Description', 'Amount']} rows={[{ cells: ['06/01', 'Balance transfer — business charges to ' + entityName + ' card', { v: '(1,230.00)', tone: 'neg' }] }, { cells: ['', 'New balance (personal)', '230.00'], total: true }]} note={<span>Your personal card, after the split. The <strong>$1,230 business charges moved to the LLC card</strong>; the <strong>$230</strong> left was always personal. <strong>Co-mingling, ended.</strong></span>} />;
                 return null;
             };
+            const renderStatements = () => (
+                <div className="fade-up">
+                    <Narrative>
+                        <p style={{ color: colors.earthDark }}>The split isn't just a story — here's the paper. Four statements close out the month: the entity's <strong>own</strong> accounts, and your personal ones now that the business is out of them.</p>
+                    </Narrative>
+
+                    <div className="text-xs font-semibold uppercase tracking-wide mt-5 mb-2" style={{ color: colors.primary }}>The LLC's own accounts</div>
+                    <div className="rounded-lg p-4 mb-3" style={{ backgroundColor: '#fff', border: `1px solid ${colors.earthLight}` }}>{renderDoc('llcbank')}</div>
+                    <div className="rounded-lg p-4 mb-5" style={{ backgroundColor: '#fff', border: `1px solid ${colors.earthLight}` }}>{renderDoc('llccard')}</div>
+
+                    <div className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: colors.earth }}>Your personal accounts — after the split</div>
+                    <div className="rounded-lg p-4 mb-3" style={{ backgroundColor: '#fff', border: `1px solid ${colors.earthLight}` }}>{renderDoc('perbank')}</div>
+                    <div className="rounded-lg p-4 mb-5" style={{ backgroundColor: '#fff', border: `1px solid ${colors.earthLight}` }}>{renderDoc('percard')}</div>
+
+                    <div className="rounded-lg p-4 mb-4" style={{ backgroundColor: colors.clayLight, border: `1px solid ${colors.clayDark}` }}>
+                        <div className="font-semibold mb-2" style={{ color: colors.clayDark }}>It all ties out</div>
+                        <p className="text-sm mb-2" style={{ color: colors.earthDark }}>Nothing was created or lost — each co-mingled account just split into a business half and a personal half:</p>
+                        <div className="text-sm space-y-1" style={{ color: colors.earthDark }}>
+                            <div>Checking: LLC <span className="mono">$500</span> + personal <span className="mono">$2,774</span> = <span className="mono">$3,274</span> <span style={{ color: colors.earth }}>(your old balance)</span></div>
+                            <div>Card: LLC <span className="mono">$1,230</span> + personal <span className="mono">$230</span> = <span className="mono">$1,460</span> <span style={{ color: colors.earth }}>(your old balance)</span></div>
+                        </div>
+                        <p className="text-sm mt-2" style={{ color: colors.earthDark }}>The only thing new to the <em>LLC</em> is the <strong>$500</strong> you moved into its account — your capital contribution. On the LLC's books: Cash <span className="mono">0 → 500</span>, members' capital <span className="mono">+500</span>.</p>
+                    </div>
+
+                    <Continue onClick={() => goPhase('complete')}>Finish up →</Continue>
+                </div>
+            );
             const DocViewer = () => {
                 if (!docView) return null;
                 const cur = acctDocs.find(d => d.id === docView);

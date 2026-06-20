@@ -140,7 +140,7 @@
             const AnnaCard = ({ children }) => (
                 <div className="rounded-lg p-4 mb-4 flex gap-3" style={{ backgroundColor: '#eef2f7', border: `1px solid ${colors.primary}` }}>
                     <div className="flex-shrink-0 rounded-full flex items-center justify-center font-bold text-white" style={{ width: 38, height: 38, backgroundColor: colors.primary }}>A</div>
-                    <div className="text-sm" style={{ color: colors.earthDark }}><div className="font-semibold mb-1" style={{ color: colors.primary }}>Anna · formed her own LLC</div>{children}</div>
+                    <div className="text-sm" style={{ color: colors.earthDark }}><div className="font-semibold mb-1" style={{ color: colors.primary }}>Anna · helped form City Cycle, LLC</div>{children}</div>
                 </div>
             );
             const GlossaryModal = () => (
@@ -163,11 +163,11 @@
 
             // ---------- source documents: full Operating Agreements ----------
             const annaFacts = {
-                entity: 'Maple Street Studio, LLC', member: 'Anna Reyes', date: 'March 14, 2024',
+                entity: 'City Cycle, LLC', member: 'Marcus Webb', date: 'May 9, 2018',
                 state: 'Connecticut', act: 'Connecticut Uniform Limited Liability Company Act',
-                purpose: 'pottery and ceramics instruction', office: '50 Maple Street, New Haven, CT 06511',
-                sched: { assets: [['Kilns & wheels', '3,200'], ['Studio shelving & tools', '900'], ['Clay & glaze inventory', '400']], assetsTotal: '4,500', liabs: [['Equipment loan', '600']], liabsTotal: '600', net: '3,900' },
-                sigCompany: 'Anna Reyes', sigMember: 'Anna Reyes',
+                purpose: 'bicycle sales & service', office: '266 Crown Street, New Haven, CT 06511',
+                sched: { assets: [['Bicycle & parts inventory', '3,200'], ['Store fixtures & displays', '900'], ['Repair tools & equipment', '400']], assetsTotal: '4,500', liabs: [['Equipment loan', '600']], liabsTotal: '600', net: '3,900' },
+                sigCompany: 'Marcus Webb', sigMember: 'Marcus Webb',
             };
             const myFacts = {
                 entity: entityName, member: displayName, date: 'June 1, 2026',
@@ -252,7 +252,7 @@
             );
             const DocViewer = () => {
                 if (!docView) return null;
-                const title = docView === 'list' ? '📄 Source Documents' : docView === 'anna' ? "Anna's Operating Agreement · example" : 'Your Operating Agreement';
+                const title = docView === 'list' ? '📄 Source Documents' : docView === 'anna' ? "City Cycle's Operating Agreement · Anna's example" : 'Your Operating Agreement';
                 return (
                     <div className="fixed inset-0 flex items-start justify-center p-4 overflow-y-auto" style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 60 }} onClick={() => setDocView(null)}>
                         <div className="rounded-lg my-8 w-full" style={{ backgroundColor: '#fff', maxWidth: 640 }} onClick={(e) => e.stopPropagation()}>
@@ -267,8 +267,8 @@
                                 {docView === 'list' && (
                                     <div className="space-y-2">
                                         <button onClick={() => setDocView('anna')} className="w-full text-left rounded-lg p-3 cursor-pointer" style={{ border: `1px solid ${colors.clayDark}`, backgroundColor: '#faf9f6' }}>
-                                            <div className="font-semibold" style={{ color: colors.earthDark }}>Anna's Operating Agreement <span className="text-xs font-normal" style={{ color: colors.clayDark }}>· example</span></div>
-                                            <div className="text-xs" style={{ color: colors.earth }}>Maple Street Studio, LLC — for reference</div>
+                                            <div className="font-semibold" style={{ color: colors.earthDark }}>City Cycle's Operating Agreement <span className="text-xs font-normal" style={{ color: colors.clayDark }}>· Anna's example</span></div>
+                                            <div className="text-xs" style={{ color: colors.earth }}>City Cycle, LLC — for reference</div>
                                         </button>
                                         {generated ? (
                                             <button onClick={() => setDocView('mine')} className="w-full text-left rounded-lg p-3 cursor-pointer" style={{ border: `1px solid ${colors.primary}`, backgroundColor: '#eef2f7' }}>
@@ -319,28 +319,28 @@
             // ---------- phases ----------
             const renderWelcome = () => (
                 <div className="fade-up">
-                    <Narrative><p style={{ color: colors.earthDark }}>The Certificate made the LLC <em>exist</em>. Now there's a second document — the one that says how it <strong>works</strong>. You ask Anna whether she can just send you hers.</p></Narrative>
+                    <Narrative><p style={{ color: colors.earthDark }}>The Certificate made the LLC <em>exist</em>. Now there's a second document — the one that says how it <strong>works</strong>. You ask Anna if she has ever seen one.</p></Narrative>
                     <AnnaCard>
-                        <p className="mb-2">“Ha — no, you write your <strong>own</strong>. Every LLC needs an <strong>Operating Agreement</strong> — the rulebook: who the member is, what they put in, who's on the hook. But it's <em>yours</em>, with your facts.”</p>
-                        <p>“Here's mine, just so you can see the <strong>shape</strong> of it —”</p>
+                        <p className="mb-2">“I helped write City Cycle’s. Every LLC needs an <strong>Operating Agreement</strong> — the rulebook: who the member is, what they put in, who's on the hook. But it's <em>yours</em>, with your facts.”</p>
+                        <p>“Here's City Cycle’s, just so you can see the <strong>shape</strong> of it —”</p>
                     </AnnaCard>
                     {/* Anna's example — a sample, clearly hers */}
                     <div className="rounded-lg p-4 mb-4 serif" style={{ backgroundColor: '#faf9f6', border: `1px dashed ${colors.clayDark}`, opacity: 0.92 }}>
                         <div className="flex justify-between items-start mb-2">
                             <div className="text-center flex-1">
                                 <div className="font-bold" style={{ color: colors.earth, fontSize: 13, letterSpacing: '0.03em' }}>OPERATING AGREEMENT</div>
-                                <div style={{ color: colors.earth, fontSize: 11 }}>OF MAPLE STREET STUDIO, LLC</div>
+                                <div style={{ color: colors.earth, fontSize: 11 }}>OF CITY CYCLE, LLC</div>
                             </div>
-                            <span className="text-xs px-2 py-0.5 rounded" style={{ backgroundColor: colors.clayLight, color: colors.clayDark, fontFamily: 'Inter, sans-serif', whiteSpace: 'nowrap' }}>Anna's — example</span>
+                            <span className="text-xs px-2 py-0.5 rounded" style={{ backgroundColor: colors.clayLight, color: colors.clayDark, fontFamily: 'Inter, sans-serif', whiteSpace: 'nowrap' }}>Anna's example</span>
                         </div>
                         <div style={{ color: colors.earth, fontSize: 12 }}>
-                            <div>§7&nbsp; <strong>Sole Member.</strong> The sole member is Anna Reyes.</div>
-                            <div>§9&nbsp; <strong>Capital Contributions.</strong> The member contributes the studio's assets and liabilities…</div>
+                            <div>§7&nbsp; <strong>Sole Member.</strong> The sole member is Marcus Webb.</div>
+                            <div>§9&nbsp; <strong>Capital Contributions.</strong> The member contributes the shop's assets and liabilities…</div>
                             <div>§17&nbsp; <strong>Liability of the Sole Member.</strong> The member is not personally liable…</div>
                             <div className="text-center mt-1" style={{ opacity: 0.6 }}>· · ·</div>
                         </div>
                     </div>
-                    <div className="mb-4"><button onClick={() => { playClick(); setDocView('anna'); }} className="text-sm font-semibold rounded-lg px-3 py-2 cursor-pointer" style={{ color: colors.primary, border: `1px solid ${colors.primary}`, backgroundColor: '#fff' }}>📄 Open Anna's full agreement →</button></div>
+                    <div className="mb-4"><button onClick={() => { playClick(); setDocView('anna'); }} className="text-sm font-semibold rounded-lg px-3 py-2 cursor-pointer" style={{ color: colors.primary, border: `1px solid ${colors.primary}`, backgroundColor: '#fff' }}>📄 Open City Cycle's full agreement →</button></div>
                     <AnnaCard><p>“See the shape? Same sections for every LLC. Yours just carries <em>your</em> name, <em>your</em> business, <em>your</em> numbers. Generate it and we'll read it together.” <span className="text-xs" style={{ color: colors.primary }}>(Both agreements live under 📄 up top.)</span></p></AnnaCard>
                     <Continue onClick={() => goPhase('agreement')}>Generate my Operating Agreement →</Continue>
                 </div>
@@ -495,7 +495,7 @@
                         <div className="font-semibold mb-3" style={{ color: colors.earthDark }}>What you worked out</div>
                         <ul className="space-y-2 text-sm">
                             {[
-                                'You wrote your own Operating Agreement — Anna’s was only an example.',
+                                'You wrote your own Operating Agreement — City Cycle’s (the one Anna set up) was only an example.',
                                 'You signed it once for the Company and once as yourself — the two “you’s” made legal and literal.',
                                 'The whole business was contributed in at book carryover — not one number changed; “what you put in” became members’ capital ($1,790 + $170 retained = $1,960).',
                                 'Limited liability put a wall between the Company’s debts and your personal life — who can be pursued, not what the records show.',
